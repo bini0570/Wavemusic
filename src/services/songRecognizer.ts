@@ -328,12 +328,6 @@ export function recognizeSongRequest(comment: string): RecognizedSong | null {
       };
     }
   }
-        displayTitle: title,
-        artist,
-        rawRequest: cleaned,
-      };
-    }
-  }
 
   // 3. Fallback: Arbitrary song title (e.g. "Yellow", "Someone Like You")
   // Only accept if at least 3 characters and not purely generic words
