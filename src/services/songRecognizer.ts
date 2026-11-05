@@ -166,6 +166,33 @@ const CANONICAL_SONGS: KnownSongPattern[] = [
   },
 ];
 
+// Built-in smart moderation keywords (profanity, troll text)
+const BLOCKED_WORDS = new Set([
+  'nigger', 'nigga', 'faggot', 'fag', 'bitch', 'whore', 'slut', 'cunt',
+  'dick', 'pussy', 'cock', 'porn', 'sex', 'kill', 'suicide', 'die',
+]);
+
+let customBlacklist: string[] = [];
+try {
+  const saved = typeof window !== 'undefined' ? localStorage.getItem('wave_banned_words') : null;
+  if (saved) {
+    customBlacklist = JSON.parse(saved);
+  }
+} catch {}
+
+export function setCustomBlacklist(words: string[]) {
+  customBlacklist = words.map((w) => w.trim().toLowerCase()).filter(Boolean);
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wave_banned_words', JSON.stringify(customBlacklist));
+    }
+  } catch {}
+}
+
+export function getCustomBlacklist(): string[] {
+  return [...customBlacklist];
+}
+
 // Conversational and bot chatter filters (comments that are NOT song requests)
 const NON_REQUEST_PATTERNS = [
   /^(hi|hello|hey|yo|sup|hola|selam|salaam)$/i,
@@ -217,6 +244,14 @@ export function cleanCommentText(rawComment: string): string {
  */
 export function recognizeSongRequest(comment: string): RecognizedSong | null {
   if (!comment || comment.trim().length < 2) return null;
+
+  const rawLower = comment.toLowerCase();
+  for (const word of BLOCKED_WORDS) {
+    if (rawLower.includes(word)) return null;
+  }
+  for (const banned of customBlacklist) {
+    if (banned && rawLower.includes(banned)) return null;
+  }
 
   const cleaned = cleanCommentText(comment);
   if (!cleaned || cleaned.length < 2) return null;

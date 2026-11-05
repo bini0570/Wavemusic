@@ -8,6 +8,7 @@ import { fetchLyrics } from './services/lyricsService';
 import { fullAudioEngine } from './services/fullAudioEngine';
 import { VotingEngine } from './services/votingEngine';
 import { tiktokLiveService } from './services/tiktokLiveService';
+import { soundEffects } from './services/soundEffectsService';
 import { LyricLine } from './data/lyrics';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -57,10 +58,12 @@ export default function App() {
     isWaitingForVotes: true,
   });
 
-  // Sync volume with fullAudioEngine
+  // Sync volume with fullAudioEngine and soundEffects
   useEffect(() => {
     fullAudioEngine.setVolume(volume);
     fullAudioEngine.setMuted(isMuted);
+    soundEffects.setVolume(volume);
+    soundEffects.setMuted(isMuted);
   }, [volume, isMuted]);
 
   // Core Play Track Function (60s loop playback)
@@ -86,6 +89,8 @@ export default function App() {
   // Handle Winner Selection when 60s concludes
   const handleWinnerSelected = useCallback(
     async (winner: SongVoteGroup, roundNumber: number): Promise<boolean> => {
+      soundEffects.playWinnerFanfare();
+
       const query = `${winner.displayTitle} ${
         winner.artist !== 'Viewer Request' ? winner.artist : ''
       }`.trim();
@@ -111,6 +116,22 @@ export default function App() {
           }
         }
 
+        // Auto-fallback to #2 contender if #1 stream could not be resolved!
+        const runnerUp = votingState.leaderboard.find((s) => s.groupKey !== winner.groupKey);
+        if (runnerUp) {
+          setAnnouncement({
+            type: 'warning',
+            message: `Could not stream "${winner.displayTitle}". Auto-falling back to #2: "${runnerUp.displayTitle}"!`,
+          });
+          const runnerQuery = `${runnerUp.displayTitle} ${
+            runnerUp.artist !== 'Viewer Request' ? runnerUp.artist : ''
+          }`.trim();
+          const runnerResults = await searchTracks(runnerQuery);
+          if (runnerResults.length > 0) {
+            return await playTrack(runnerResults[0], true);
+          }
+        }
+
         setAnnouncement({
           type: 'warning',
           message: `Could not resolve stream for "${winner.displayTitle}".`,
@@ -124,7 +145,7 @@ export default function App() {
         return false;
       }
     },
-    [playTrack]
+    [playTrack, votingState.leaderboard]
   );
 
   // Handle 0 votes received at round end (Pause & wait for chat)
@@ -199,6 +220,17 @@ export default function App() {
     const t = setTimeout(() => setAnnouncement(null), 4000);
     return () => clearTimeout(t);
   }, [announcement]);
+
+  // 5-Second Countdown Audio Cues
+  useEffect(() => {
+    if (
+      !votingState.isWaitingForVotes &&
+      votingState.timeRemainingSeconds <= 5 &&
+      votingState.timeRemainingSeconds > 0
+    ) {
+      soundEffects.playTick(votingState.timeRemainingSeconds);
+    }
+  }, [votingState.timeRemainingSeconds, votingState.isWaitingForVotes]);
 
   // Hardware clock sync with fullAudioEngine
   useEffect(() => {

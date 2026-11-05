@@ -356,6 +356,17 @@ async function start() {
         appType: 'spa',
       });
       app.use(vite.middlewares);
+
+      // Handle all HTML navigation requests and transform index.html with Vite
+      app.use('*', async (req, res, next) => {
+        try {
+          const rawHtml = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
+          const transformed = await vite.transformIndexHtml(req.originalUrl, rawHtml);
+          res.status(200).set({ 'Content-Type': 'text/html' }).end(transformed);
+        } catch (e) {
+          next(e);
+        }
+      });
     } catch (err) {
       console.warn('[WAVE Server] Could not mount Vite middleware, falling back to static dist:', err);
       app.use(express.static(distPath));
