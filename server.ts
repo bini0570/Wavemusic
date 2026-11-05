@@ -30,7 +30,7 @@ const wss = new WebSocketServer({ server, path: '/ws' });
 app.use(express.json());
 
 let currentTikTokConnection: any = null;
-let currentChannel: string = '';
+let currentChannel = '';
 let isTikTokConnected = false;
 
 // Broadcast payload to all connected frontend clients
@@ -175,12 +175,12 @@ app.post('/api/tiktok/connect', async (req, res) => {
   return res.json(result);
 });
 
-app.post('/api/tiktok/disconnect', (req, res) => {
+app.post('/api/tiktok/disconnect', (_req, res) => {
   disconnectTikTok();
   return res.json({ success: true, message: 'Disconnected' });
 });
 
-app.get('/api/tiktok/status', (req, res) => {
+app.get('/api/tiktok/status', (_req, res) => {
   return res.json({
     connected: isTikTokConnected,
     channel: currentChannel,
@@ -194,7 +194,7 @@ app.get('/api/resolve-video', async (req, res) => {
     if (!q.trim()) {
       return res.status(400).json({ error: 'Missing query' });
     }
-    const cleanQuery = q.replace(/[\(\)\[\]]/g, ' ') + ' audio';
+    const cleanQuery = q.replace(/[()[\]]/g, ' ') + ' audio';
     const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery)}`;
     const response = await fetch(ytUrl, {
       headers: {
@@ -204,9 +204,7 @@ app.get('/api/resolve-video', async (req, res) => {
     });
     const text = await response.text();
     const match = text.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
-    return res.json({
-      videoId: match ? match[1] : null,
-    });
+    return res.json({ videoId: match ? match[1] : null });
   } catch (err: any) {
     return res.status(500).json({ error: err?.message || 'Resolution failed' });
   }
@@ -238,11 +236,11 @@ app.get('/api/lyrics/musixmatch', async (req, res) => {
 
     if (directRes.ok) {
       const html = await directRes.text();
-      const m = html.match(/"lyrics":\{"body":"([\s\S]*?)(?<!\\)"/);
-      if (m) {
-        let parsedText = m[1];
+      const match = html.match(/"lyrics":\{"body":"([\s\S]*?)(?<!\\)"/);
+      if (match) {
+        let parsedText = match[1];
         try {
-          parsedText = JSON.parse(`"${m[1]}"`);
+          parsedText = JSON.parse(`"${match[1]}"`);
         } catch {}
         return res.json({ source: 'Musixmatch', lyrics: parsedText });
       }
@@ -309,8 +307,7 @@ wss.on('connection', (ws) => {
 app.get('/api/itunes/*', async (req, res) => {
   try {
     const itunesPath = req.url.replace(/^\/api\/itunes/, '');
-    const itunesUrl = `https://itunes.apple.com${itunesPath}`;
-    const itunesRes = await fetch(itunesUrl);
+    const itunesRes = await fetch(`https://itunes.apple.com${itunesPath}`);
     const data = await itunesRes.text();
     res.setHeader('Content-Type', itunesRes.headers.get('content-type') || 'application/json');
     res.send(data);
@@ -322,8 +319,7 @@ app.get('/api/itunes/*', async (req, res) => {
 app.get('/api/lrclib/*', async (req, res) => {
   try {
     const lrclibPath = req.url.replace(/^\/api\/lrclib/, '');
-    const lrclibUrl = `https://lrclib.net${lrclibPath}`;
-    const lrclibRes = await fetch(lrclibUrl);
+    const lrclibRes = await fetch(`https://lrclib.net${lrclibPath}`);
     const data = await lrclibRes.text();
     res.setHeader('Content-Type', lrclibRes.headers.get('content-type') || 'application/json');
     res.send(data);
@@ -332,20 +328,31 @@ app.get('/api/lrclib/*', async (req, res) => {
   }
 });
 
-// Start Server with Vite Dev or Static Production
+// Start the API server with a production build, or Vite middleware in development.
 async function start() {
   const distPath = path.join(__dirname, 'dist');
   const indexPath = path.join(distPath, 'index.html');
-  const hasBuiltDist = fs.existsSync(indexPath);
 
-  if (hasBuiltDist) {
-    console.log('[WAVE Server] Serving pre-built static bundle from dist/');
+  if (!fs.existsSync(indexPath) && process.env.NODE_ENV === 'production') {
+    console.log('[WAVE Server] Production bundle is missing; building it before serving...');
+    try {
+      const { build } = await import('vite');
+      await build();
+    } catch (err) {
+      console.error('[WAVE Server] Production build failed:', err);
+      process.exitCode = 1;
+      return;
+    }
+  }
+
+  if (fs.existsSync(indexPath)) {
+    console.log('[WAVE Server] Serving static bundle from dist/');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(indexPath);
     });
   } else {
-    console.log('[WAVE Server] dist/index.html not found, mounting on-the-fly Vite bundler...');
+    console.log('[WAVE Server] No production bundle found; mounting Vite development middleware...');
     try {
       const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
@@ -357,25 +364,26 @@ async function start() {
       });
       app.use(vite.middlewares);
 
-      // Handle all HTML navigation requests and transform index.html with Vite
+      // Transform the root HTML through Vite for development requests.
       app.use('*', async (req, res, next) => {
         try {
           const rawHtml = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
           const transformed = await vite.transformIndexHtml(req.originalUrl, rawHtml);
           res.status(200).set({ 'Content-Type': 'text/html' }).end(transformed);
-        } catch (e) {
-          next(e);
+        } catch (err) {
+          next(err);
         }
       });
     } catch (err) {
-      console.warn('[WAVE Server] Could not mount Vite middleware, falling back to static dist:', err);
-      app.use(express.static(distPath));
+      console.error('[WAVE Server] Could not mount Vite development middleware:', err);
+      process.exitCode = 1;
+      return;
     }
   }
 
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => {
-    console.log(`[WAVE Server] Running on http://localhost:${PORT}`);
+  const port = process.env.PORT || 3000;
+  server.listen(port, () => {
+    console.log(`[WAVE Server] Running on port ${port}`);
   });
 }
 
