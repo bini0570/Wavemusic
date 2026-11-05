@@ -4,10 +4,21 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-// @ts-ignore
-import { WebcastPushConnection } from 'tiktok-live-connector';
+import { createRequire } from 'module';
+import fs from 'fs';
 
 dotenv.config();
+
+const require = createRequire(import.meta.url);
+
+let WebcastPushConnection: any = null;
+try {
+  const tlc = require('tiktok-live-connector');
+  WebcastPushConnection =
+    tlc.WebcastPushConnection || tlc.default?.WebcastPushConnection || tlc.default || tlc;
+} catch (err) {
+  console.warn('[TikTok LIVE] Could not load WebcastPushConnection via require:', err);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +48,10 @@ async function connectToTikTok(uniqueId: string): Promise<{ success: boolean; me
   const cleanId = uniqueId.replace(/^@/, '').trim();
   if (!cleanId) {
     return { success: false, message: 'Invalid TikTok username' };
+  }
+
+  if (!WebcastPushConnection) {
+    return { success: false, message: 'TikTok Live connector is not initialized' };
   }
 
   // Disconnect previous session if active
@@ -319,16 +334,18 @@ app.get('/api/lrclib/*', async (req, res) => {
 
 // Start Server with Vite Dev or Static Production
 async function start() {
-  const isProd = process.env.NODE_ENV === 'production';
   const distPath = path.join(__dirname, 'dist');
+  const indexPath = path.join(distPath, 'index.html');
+  const hasBuiltDist = fs.existsSync(indexPath);
 
-  if (isProd) {
+  if (hasBuiltDist) {
+    console.log('[WAVE Server] Serving pre-built static bundle from dist/');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(indexPath);
     });
   } else {
-    // Dynamic Vite Dev Server in development
+    console.log('[WAVE Server] dist/index.html not found, mounting on-the-fly Vite bundler...');
     try {
       const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
@@ -336,7 +353,8 @@ async function start() {
         appType: 'spa',
       });
       app.use(vite.middlewares);
-    } catch {
+    } catch (err) {
+      console.warn('[WAVE Server] Could not mount Vite middleware, falling back to static dist:', err);
       app.use(express.static(distPath));
     }
   }
