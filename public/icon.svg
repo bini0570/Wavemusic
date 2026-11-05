@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="50%" stop-color="#ec4899" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#161624" />
+      <stop offset="100%" stop-color="#0d0d16" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bg)" />
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#grad)" opacity="0.15" />
+  <!-- Music Note / Wave Icon -->
+  <g transform="translate(136, 120)">
+    <path d="M192 48v160c-9.6-5.8-21.6-9.6-34.7-9.6-35.3 0-64 21.5-64 48s28.7 48 64 48 64-21.5 64-48V96l76.7-19.2V24L192 48z" fill="url(#grad)" />
+    <!-- Audio Wave Lines -->
+    <rect x="-30" y="140" width="16" height="60" rx="8" fill="#a855f7" />
+    <rect x="-6" y="100" width="16" height="140" rx="8" fill="#ec4899" />
+    <rect x="250" y="90" width="16" height="150" rx="8" fill="#ec4899" />
+    <rect x="274" y="130" width="16" height="70" rx="8" fill="#a855f7" />
+  </g>
+</svg>

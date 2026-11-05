@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101018">
+<title>Wave — Audio Music Search</title>
+<style>
+:root{--bg:#101018;--panel:#191923;--panel2:#222231;--line:#343447;--text:#f7f7fb;--muted:#a5a5b8;--accent:#a78bfa;--accent2:#ec4899}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% -10%,#35265c 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;padding-bottom:115px}
+header{max-width:1000px;margin:auto;padding:24px 18px 12px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:11px;font-weight:950;font-size:21px;letter-spacing:.05em}.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:22px}.tag{font-size:11px;color:var(--muted);letter-spacing:.12em}
+main{max-width:1000px;margin:auto;padding:14px 18px}.hero{padding:24px 0 22px}.hero h1{font-size:clamp(30px,6vw,48px);line-height:1.06;letter-spacing:-.04em;margin:0 0 10px}.hero p{margin:0;color:var(--muted)}
+.search{display:flex;gap:9px;margin:22px 0 14px}.search input{flex:1;min-width:0;background:#1b1b28;border:1px solid var(--line);border-radius:14px;padding:15px 16px;color:var(--text);outline:none}.search input:focus{border-color:var(--accent)}button{border:0;border-radius:13px;padding:12px 17px;background:var(--accent);color:#171323;font-weight:850;cursor:pointer}button:disabled{opacity:.45;cursor:default}.quick{display:flex;gap:8px;flex-wrap:wrap}.quick button{background:#242436;color:#ddd7f6;font-size:12px;padding:8px 12px;border:1px solid #39364e}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:28px 0 12px}.section-head h2{font-size:17px;margin:0}.section-head span{font-size:12px;color:var(--muted)}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.track{display:flex;gap:12px;align-items:center;background:linear-gradient(145deg,#1d1d2a,#171721);border:1px solid #303044;border-radius:15px;padding:10px;min-width:0}.art{width:66px;height:66px;flex:none;border-radius:10px;object-fit:cover;background:#302b45}.meta{min-width:0;flex:1}.name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.artist{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}.album{font-size:10px;color:#77778c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}.play{width:40px;height:40px;flex:none;border-radius:50%;padding:0;background:#302746;color:#fff;font-size:16px}.empty{grid-column:1/-1;text-align:center;padding:35px 12px;color:var(--muted);background:#191923;border:1px dashed #39394e;border-radius:16px}
+.player{position:fixed;bottom:0;left:0;right:0;background:#171722ed;backdrop-filter:blur(18px);border-top:1px solid #38384b;padding:12px max(16px,calc((100vw - 1000px)/2));z-index:4}.player-inner{max-width:1000px;margin:auto;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(110px,.6fr);gap:15px;align-items:center}.now{display:flex;align-items:center;gap:10px;min-width:0}.now img{width:45px;height:45px;border-radius:8px;object-fit:cover;background:#302b45}.now .name{font-size:13px}.now .artist{font-size:11px}.controls{display:flex;align-items:center;gap:14px}.controls button{background:none;color:white;padding:6px;font-size:20px}.controls #toggle{background:var(--accent);color:#171323;border-radius:50%;width:40px;height:40px;font-size:16px}.progress{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--muted)}input[type=range]{width:100%;accent-color:var(--accent)}
+.notice{font-size:11px;color:#8d8da2;margin-top:15px}.loading{color:var(--accent)}@media(max-width:650px){.results{grid-template-columns:1fr}.player-inner{grid-template-columns:minmax(0,1fr) auto}.progress{grid-column:1/-1;grid-row:2}.player{padding:10px 13px}.hero{padding-top:18px}.search button{padding:12px}.now img{width:40px;height:40px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">♫</div><div>WAVE<div class="tag">AUDIO DISCOVERY</div></div></div><div class="tag">PREVIEW PLAYER</div></header>
+<main>
+  <section class="hero">
+    <h1>Find your next<br><span style="background:linear-gradient(90deg,#c4b5fd,#f9a8d4);background-clip:text;color:transparent">favorite sound.</span></h1>
+    <p>Search songs, explore results and play audio previews.</p>
+    <form class="search" id="searchForm"><input id="query" type="search" placeholder="Search song or artist…" autocomplete="off" required><button id="searchBtn">Search</button></form>
+    <div class="quick"><button type="button" data-q="Afrobeats">Afrobeats</button><button type="button" data-q="Ethiopian music">Ethiopian music</button><button type="button" data-q="Phonk">Phonk</button><button type="button" data-q="Pop hits">Pop</button><button type="button" data-q="Hip hop">Hip-hop</button></div>
+  </section>
+  <div class="section-head"><h2 id="resultTitle">Discover music</h2><span id="resultCount">Search to begin</span></div>
+  <section class="results" id="results"><div class="empty">♫<br>Search for a song or artist to see playable previews.</div></section>
+  <p class="notice">Audio previews are supplied by the iTunes Search API and are typically around 30 seconds. Full tracks may require the music service's own app or subscription. Availability varies by song and country.</p>
+</main>
+<footer class="player">
+  <div class="player-inner">
+    <div class="now"><img id="nowArt" alt="" src=""><div class="meta"><div class="name" id="nowName">Choose a track</div><div class="artist" id="nowArtist">Your music will appear here</div></div></div>
+    <div class="controls"><button id="prev" title="Previous">⏮</button><button id="toggle" title="Play">▶</button><button id="next" title="Next">⏭</button></div>
+    <div class="progress"><span id="currentTime">0:00</span><input id="seek" type="range" min="0" max="30" value="0"><span id="duration">0:30</span></div>
+  </div>
+  <audio id="audio" preload="none"></audio>
+</footer>
+<script>
+const $=id=>document.getElementById(id);
+let tracks=[],current=-1,playing=false;
+const audio=$('audio');
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function time(t){if(!Number.isFinite(t))return'0:00';return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')}
+async function search(q){
+ if(!q.trim())return;
+ $('resultTitle').textContent='Searching…';$('resultCount').textContent='';$('searchBtn').disabled=true;
+ $('results').innerHTML='<div class="empty loading">Searching music catalogue…</div>';
+ try{
+   const url='https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&entity=song&limit=30';
+   const res=await fetch(url);if(!res.ok)throw new Error('Search service returned '+res.status);
+   const data=await res.json();tracks=(data.results||[]).filter(t=>t.previewUrl);
+   $('resultTitle').textContent='Results for “'+q+'”';$('resultCount').textContent=tracks.length+' playable previews';
+   render();
+ }catch(e){$('resultTitle').textContent='Search unavailable';$('resultCount').textContent='';$('results').innerHTML='<div class="empty">Could not reach the music catalogue. Check your internet connection and try again.</div>'}
+ finally{$('searchBtn').disabled=false}
+}
+function render(){
+ if(!tracks.length){$('results').innerHTML='<div class="empty">No playable previews found. Try another song or artist.</div>';return}
+ $('results').innerHTML=tracks.map((t,i)=>`<article class="track"><img class="art" src="${esc(t.artworkUrl100||'')}" alt="" loading="lazy"><div class="meta"><div class="name" title="${esc(t.trackName)}">${esc(t.trackName)}</div><div class="artist">${esc(t.artistName)}</div><div class="album">${esc(t.collectionName||'')}</div></div><button class="play" data-play="${i}" aria-label="Play ${esc(t.trackName)}">${i===current&&playing?'Ⅱ':'▶'}</button></article>`).join('');
+}
+function loadTrack(i,autoplay=true){
+ if(!tracks[i])return;current=i;const t=tracks[i];audio.src=t.previewUrl;
+ $('nowArt').src=(t.artworkUrl100||'').replace('100x100','300x300');$('nowName').textContent=t.trackName;$('nowArtist').textContent=t.artistName;
+ $('duration').textContent=time(t.trackTimeMillis/1000||30);$('seek').max=audio.duration||30;
+ if(autoplay){audio.play().then(()=>{playing=true;sync()}).catch(()=>{playing=false;sync()})}else{playing=false;sync()}
+ render();
+}
+function sync(){$('toggle').textContent=playing?'Ⅱ':'▶';$('seek').value=audio.currentTime||0;$('currentTime').textContent=time(audio.currentTime||0);if(current>=0){const t=tracks[current];$('duration').textContent=time(audio.duration||t.trackTimeMillis/1000||30)}}
+$('searchForm').addEventListener('submit',e=>{e.preventDefault();search($('query').value)});
+document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>{$('query').value=b.dataset.q;search(b.dataset.q)}));
+$('results').addEventListener('click',e=>{const b=e.target.closest('[data-play]');if(!b)return;const i=Number(b.dataset.play);if(i===current){if(playing)audio.pause();else audio.play().then(()=>{playing=true;sync()}).catch(()=>{});}else loadTrack(i);});
+$('toggle').addEventListener('click',()=>{if(current<0){if(tracks.length)loadTrack(0);return}if(playing)audio.pause();else audio.play().then(()=>{playing=true;sync()}).catch(()=>{});});
+$('prev').addEventListener('click',()=>{if(tracks.length)loadTrack(Math.max(0,current-1))});
+$('next').addEventListener('click',()=>{if(tracks.length)loadTrack(Math.min(tracks.length-1,current+1))});
+audio.addEventListener('play',()=>{playing=true;sync();render()});audio.addEventListener('pause',()=>{playing=false;sync();render()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);audio.addEventListener('ended',()=>{if(current<tracks.length-1)loadTrack(current+1);else{playing=false;sync()}});
+$('seek').addEventListener('input',()=>{audio.currentTime=Number($('seek').value)});
+search('Afrobeats');
+</script>
+</body>
+</html>

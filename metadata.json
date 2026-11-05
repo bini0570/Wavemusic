@@ -1,0 +1,6 @@
+{
+  "name": "WAVE — 60-Second TikTok LIVE DJ Streamer",
+  "description": "Interactive 60-second music voting and playback player for TikTok LIVE broadcasts with synchronized lyrics, live chat integration, and host controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
