@@ -188,12 +188,13 @@ export default defineConfig(() => {
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
         manifest: {
           id: '/',
-          name: 'የሙዚቃ ምርጫ',
-          short_name: 'የሙዚቃ ምርጫ',
-          description: 'Explore Ethiopian and global music hits with studio audio and real-time synchronized lyrics.',
+          name: 'WAVE — TikTok LIVE DJ',
+          short_name: 'WAVE DJ',
+          description: 'Interactive 60s music voting and playback player for TikTok LIVE broadcasts.',
           theme_color: '#0d0d16',
           background_color: '#0d0d16',
           display: 'standalone',
+          orientation: 'portrait',
           start_url: '/',
           scope: '/',
           icons: [
