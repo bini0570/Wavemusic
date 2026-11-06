@@ -23,91 +23,124 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 }) => {
   const [imgError, setImgError] = useState(false);
 
+
+  const cardStyle: React.CSSProperties = isCurrent
+    ? {
+        background: 'rgba(139,92,246,0.1)',
+        border: '1px solid rgba(139,92,246,0.45)',
+        boxShadow: '0 0 14px rgba(139,92,246,0.15)',
+      }
+    : {
+        background: 'rgba(11,8,22,0.75)',
+        border: '1px solid rgba(139,92,246,0.1)',
+      };
+
   return (
     <article
       onClick={onSelectTrack}
-      className={`group flex items-center justify-between gap-3 rounded-2xl p-2.5 transition-all cursor-pointer active:scale-[0.98] ${
-        isCurrent
-          ? 'bg-purple-950/40 border border-purple-500/40'
-          : 'bg-[#151522]/80 border border-white/5 hover:border-white/10 hover:bg-[#191928]'
-      }`}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: '12px', borderRadius: '16px', padding: '10px',
+        cursor: 'pointer', transition: 'all 0.15s',
+        ...cardStyle,
+      }}
+      onMouseEnter={(e) => {
+        if (!isCurrent) {
+          (e.currentTarget as HTMLElement).style.borderColor = 'rgba(139,92,246,0.25)';
+          (e.currentTarget as HTMLElement).style.background = 'rgba(139,92,246,0.06)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isCurrent) {
+          (e.currentTarget as HTMLElement).style.borderColor = 'rgba(139,92,246,0.1)';
+          (e.currentTarget as HTMLElement).style.background = 'rgba(11,8,22,0.75)';
+        }
+      }}
     >
       {/* Artwork with play overlay */}
-      <div className="relative h-13 w-13 shrink-0 overflow-hidden rounded-xl bg-purple-950/40">
+      <div style={{ position: 'relative', height: '52px', width: '52px', flexShrink: 0, overflow: 'hidden', borderRadius: '12px', background: 'rgba(139,92,246,0.15)' }}>
         {!imgError && track.artworkUrl ? (
           <img
             src={track.artworkUrl}
             alt={track.title}
             onError={() => setImgError(true)}
-            className="h-full w-full object-cover"
+            style={{ height: '100%', width: '100%', objectFit: 'cover' }}
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-purple-300">
-            <Music className="h-5 w-5" />
+          <div style={{ display: 'flex', height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6' }}>
+            <Music style={{ height: '20px', width: '20px' }} />
           </div>
         )}
 
-        {/* Playing animation or play icon */}
-        <div
-          className={`absolute inset-0 flex items-center justify-center transition ${
-            isCurrent ? 'bg-black/30' : 'opacity-0 group-hover:opacity-100 bg-black/40'
-          }`}
+        {/* Overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: isCurrent ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0)',
+          transition: 'background 0.2s',
+        }}
+          onMouseEnter={(e) => { if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.4)'; }}
+          onMouseLeave={(e) => { if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0)'; }}
         >
           {isCurrent && isPlaying ? (
-            <div className="flex items-end gap-0.5 h-3">
-              <span className="w-1 bg-purple-400 animate-pulse h-full rounded-full" />
-              <span className="w-1 bg-purple-300 animate-bounce h-2/3 rounded-full" />
-              <span className="w-1 bg-purple-400 animate-pulse h-4/5 rounded-full" />
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '14px' }}>
+              <span className="eq-bar eq-bar-1" style={{ background: '#8b5cf6' }} />
+              <span className="eq-bar eq-bar-3" style={{ background: '#06b6d4' }} />
+              <span className="eq-bar eq-bar-5" style={{ background: '#8b5cf6' }} />
             </div>
           ) : (
-            <Play className="h-4 w-4 fill-white text-white ml-0.5" />
+            <Play style={{ height: '16px', width: '16px', fill: 'white', color: 'white', marginLeft: '2px' }} />
           )}
         </div>
       </div>
 
-      {/* Meta text (minimal, zero fluff) */}
-      <div className="min-w-0 flex-1">
-        <h3
-          className={`truncate text-sm font-bold ${
-            isCurrent ? 'text-purple-300' : 'text-white'
-          }`}
-        >
+      {/* Meta text */}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <h3 style={{
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          fontSize: '13px', fontWeight: 700,
+          color: isCurrent ? '#a78bfa' : '#fff',
+          textShadow: isCurrent ? '0 0 8px rgba(139,92,246,0.5)' : 'none',
+        }}>
           {track.title}
         </h3>
-        <p className="truncate text-xs text-slate-400 mt-0.5">
+        <p style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '11px', color: isCurrent ? '#06b6d4' : '#94a3b8', marginTop: '2px' }}>
           {track.artist}
         </p>
       </div>
 
-      {/* Actions (Heart + Play) */}
+      {/* Actions */}
       <div
-        className="flex items-center gap-1 shrink-0"
+        style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onToggleFavorite}
-          className="rounded-full p-2 text-slate-400 hover:text-pink-400 active:scale-90 transition"
+          style={{ borderRadius: '50%', padding: '8px', color: isFavorite ? '#ec4899' : '#64748b', background: 'none', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
           aria-label="Favorite"
         >
-          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-pink-500 text-pink-500' : ''}`} />
+          <Heart style={{ height: '15px', width: '15px', fill: isFavorite ? '#ec4899' : 'none' }} />
         </button>
 
         <button
           type="button"
           onClick={onPlayToggle}
-          className={`flex h-9 w-9 items-center justify-center rounded-full transition active:scale-90 ${
-            isCurrent && isPlaying
-              ? 'bg-purple-500 text-slate-950 shadow-md shadow-purple-500/20'
-              : 'bg-white/10 text-white hover:bg-white/20'
-          }`}
+          style={{
+            display: 'flex', height: '36px', width: '36px', alignItems: 'center', justifyContent: 'center',
+            borderRadius: '50%', border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+            background: isCurrent && isPlaying
+              ? 'linear-gradient(135deg, #8b5cf6, #06b6d4)'
+              : 'rgba(255,255,255,0.08)',
+            color: '#fff',
+            boxShadow: isCurrent && isPlaying ? '0 0 12px rgba(139,92,246,0.5)' : 'none',
+          }}
           aria-label={isCurrent && isPlaying ? 'Pause' : 'Play'}
         >
           {isCurrent && isPlaying ? (
-            <Pause className="h-4 w-4 fill-current" />
+            <Pause style={{ height: '15px', width: '15px', fill: 'currentColor' }} />
           ) : (
-            <Play className="h-4 w-4 fill-current ml-0.5" />
+            <Play style={{ height: '15px', width: '15px', fill: 'currentColor', marginLeft: '2px' }} />
           )}
         </button>
       </div>

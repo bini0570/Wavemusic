@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music2, Radio, Sliders, Volume2, Sparkles } from 'lucide-react';
+import { Radio, Sliders, Zap } from 'lucide-react';
 
 interface HeaderProps {
   isConnected: boolean;
@@ -17,49 +17,95 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenDrawer,
 }) => {
   return (
-    <header className="sticky top-0 z-30 border-b border-purple-900/30 bg-[#0e0b1f]/95 backdrop-blur-md px-3 sm:px-6 py-2.5 shrink-0 shadow-lg">
-      <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
-        {/* Left: Webapp Banner */}
+    <header className="sticky top-0 z-30 shrink-0" style={{ background: 'rgba(11,8,22,0.97)', borderBottom: '1px solid rgba(139,92,246,0.25)', backdropFilter: 'blur(20px)', boxShadow: '0 0 40px rgba(139,92,246,0.15)' }}>
+      <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
+
+        {/* Left: WAVE Branding */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 shadow-md shrink-0">
-            <Music2 className="h-4.5 w-4.5 text-white" />
+          {/* Neon icon */}
+          <div
+            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl shrink-0"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+              boxShadow: '0 0 18px rgba(139,92,246,0.7), 0 0 36px rgba(6,182,212,0.3)',
+            }}
+          >
+            <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-white fill-white" />
           </div>
-          <h1 className="text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-purple-200 via-pink-200 to-amber-200 bg-clip-text text-transparent">
-            WAVE
-          </h1>
+
+          <div className="min-w-0">
+            <h1
+              className="text-xl sm:text-2xl font-black tracking-widest uppercase"
+              style={{
+                background: 'linear-gradient(90deg, #c4b5fd, #67e8f9, #c4b5fd)',
+                backgroundSize: '200%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.8))',
+              }}
+            >
+              WAVE
+            </h1>
+          </div>
         </div>
 
-        {/* Right: TikTok Online/Offline Status & Connect Button */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {/* Status Badge */}
+        {/* Right: Status + Connect Button */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+
+          {/* Live / Offline Status Pill */}
           <div
-            className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border text-[11px] sm:text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold transition-all`}
+            style={
               isConnected
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]'
-                : 'bg-white/5 border-white/10 text-slate-400'
-            }`}
+                ? {
+                    background: 'rgba(6,182,212,0.12)',
+                    border: '1px solid rgba(6,182,212,0.4)',
+                    color: '#67e8f9',
+                    boxShadow: '0 0 12px rgba(6,182,212,0.3)',
+                  }
+                : {
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#64748b',
+                  }
+            }
           >
             <span
-              className={`h-2 w-2 rounded-full shrink-0 ${
-                isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
-              }`}
+              className="h-2 w-2 rounded-full shrink-0"
+              style={
+                isConnected
+                  ? { background: '#06b6d4', boxShadow: '0 0 8px #06b6d4', animation: 'neon-pulse 1.5s ease-in-out infinite' }
+                  : { background: '#475569' }
+              }
             />
-            <span className="truncate max-w-[90px] sm:max-w-none">
-              <span className="sm:hidden">{isConnected ? 'LIVE' : 'Offline'}</span>
-              <span className="hidden sm:inline">{isConnected ? `${channelName} LIVE` : 'Offline Mode'}</span>
+            <span className="sm:hidden">{isConnected ? 'LIVE' : 'Offline'}</span>
+            <span className="hidden sm:inline">
+              {isConnected ? `${channelName} LIVE` : 'Offline Mode'}
             </span>
           </div>
 
-          {/* Connect Button */}
+          {/* Connect TikTok Button */}
           <button
             onClick={onOpenConnectModal}
-            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider transition active:scale-95 shadow-md ${
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider transition active:scale-95"
+            style={
               isConnected
-                ? 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
-                : 'bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white shadow-purple-950/50'
-            }`}
+                ? {
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#cbd5e1',
+                  }
+                : {
+                    background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+                    border: 'none',
+                    color: '#fff',
+                    boxShadow: '0 0 20px rgba(139,92,246,0.5)',
+                  }
+            }
           >
-            <Radio className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 ${isConnecting ? 'animate-spin' : ''}`} />
+            <Radio
+              className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 ${isConnecting ? 'animate-spin' : ''}`}
+            />
             <span className="hidden sm:inline">
               {isConnecting ? 'Connecting...' : isConnected ? 'Change Channel' : 'Connect TikTok'}
             </span>
@@ -68,11 +114,16 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </button>
 
-          {/* DJ Studio Controls Drawer Toggle */}
+          {/* DJ Controls Drawer Button */}
           {onOpenDrawer && (
             <button
               onClick={onOpenDrawer}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition"
+              className="p-2 rounded-xl transition hover:scale-105 active:scale-95"
+              style={{
+                background: 'rgba(139,92,246,0.1)',
+                border: '1px solid rgba(139,92,246,0.25)',
+                color: '#c4b5fd',
+              }}
               title="DJ Studio Host Controls"
             >
               <Sliders className="h-4 w-4" />

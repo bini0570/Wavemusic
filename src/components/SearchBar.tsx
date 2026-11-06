@@ -140,12 +140,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div
       ref={containerRef}
-      className="w-full bg-[#0d0d16]/95 backdrop-blur-md pt-2 pb-2.5 border-b border-white/5"
+      style={{
+        width: '100%',
+        background: 'rgba(11,8,22,0.95)',
+        backdropFilter: 'blur(12px)',
+        paddingTop: '8px',
+        paddingBottom: '10px',
+        borderBottom: '1px solid rgba(139,92,246,0.15)',
+      }}
     >
       {/* Search Input Form */}
-      <form onSubmit={handleSubmit} className="relative flex w-full items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 pointer-events-none" />
+      <form onSubmit={handleSubmit} style={{ position: 'relative', display: 'flex', width: '100%', alignItems: 'center', gap: '8px' }}>
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Search style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', height: '16px', width: '16px', color: '#8b5cf6', pointerEvents: 'none' }} />
           <input
             ref={inputRef}
             type="search"
@@ -162,10 +169,29 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               }
             }}
             placeholder="Search song or artist..."
-            className="w-full rounded-xl border border-white/10 bg-[#161624] py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 shadow-inner outline-none transition focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 font-medium"
+            style={{
+              width: '100%',
+              borderRadius: '12px',
+              border: '1px solid rgba(139,92,246,0.3)',
+              background: 'rgba(11,8,22,0.8)',
+              padding: '10px 40px 10px 42px',
+              fontSize: '14px',
+              color: '#fff',
+              outline: 'none',
+              fontWeight: 500,
+              boxSizing: 'border-box',
+            }}
+            onFocusCapture={(e) => {
+              (e.target as HTMLInputElement).style.borderColor = 'rgba(6,182,212,0.6)';
+              (e.target as HTMLInputElement).style.boxShadow = '0 0 12px rgba(6,182,212,0.15)';
+            }}
+            onBlurCapture={(e) => {
+              (e.target as HTMLInputElement).style.borderColor = 'rgba(139,92,246,0.3)';
+              (e.target as HTMLInputElement).style.boxShadow = 'none';
+            }}
           />
 
-          {/* Interactive Clear Icon: Prominent circular button with tooltip */}
+          {/* Clear Button */}
           {term && (
             <button
               type="button"
@@ -173,11 +199,16 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 handleClear();
                 setIsUserEditing(true);
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white transition active:scale-90"
+              style={{
+                position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                height: '24px', width: '24px', borderRadius: '50%',
+                background: 'rgba(139,92,246,0.15)', color: '#a78bfa',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+              }}
               aria-label="Clear search text"
-              title="Clear search"
             >
-              <X className="h-3.5 w-3.5" />
+              <X style={{ height: '12px', width: '12px' }} />
             </button>
           )}
         </div>
@@ -185,59 +216,83 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <button
           type="submit"
           disabled={isLoading || !term.trim()}
-          className="flex h-[42px] items-center justify-center rounded-xl bg-purple-500 px-4 text-xs font-bold text-slate-950 transition hover:bg-purple-400 active:scale-95 disabled:opacity-40 shrink-0 shadow-sm"
+          style={{
+            display: 'flex', height: '42px', alignItems: 'center', justifyContent: 'center',
+            borderRadius: '12px',
+            background: isLoading || !term.trim()
+              ? 'rgba(139,92,246,0.3)'
+              : 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+            padding: '0 16px',
+            fontSize: '12px', fontWeight: 700, color: '#fff',
+            border: 'none', cursor: isLoading || !term.trim() ? 'not-allowed' : 'pointer',
+            flexShrink: 0,
+            boxShadow: '0 0 12px rgba(139,92,246,0.3)',
+            transition: 'all 0.15s',
+          }}
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 style={{ height: '16px', width: '16px', animation: 'spin 1s linear infinite' }} />
           ) : (
             <span>Search</span>
           )}
         </button>
       </form>
 
-      {/* Recent Search Queries Overlay from localStorage */}
+      {/* Recent Search Queries Dropdown */}
       {isOpen && recentSearches.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-2xl border border-white/10 bg-[#141422] p-2.5 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-1 duration-150">
-          <div className="flex items-center justify-between px-2 pb-2 border-b border-white/5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-              <Clock className="h-3.5 w-3.5 text-purple-400" />
-              <span>Recent Searches</span>
+        <div style={{
+          position: 'absolute', left: 0, right: 0, top: '100%', marginTop: '6px',
+          zIndex: 30, borderRadius: '16px',
+          border: '1px solid rgba(139,92,246,0.25)',
+          background: 'rgba(11,8,22,0.97)',
+          padding: '10px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(20px)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px 8px', borderBottom: '1px solid rgba(139,92,246,0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: '#a78bfa' }}>
+              <Clock style={{ height: '14px', width: '14px' }} />
+              <span>Recent</span>
             </div>
             <button
               type="button"
               onClick={handleClearAll}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 transition"
-              title="Clear all recent searches"
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer' }}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 style={{ height: '12px', width: '12px' }} />
               <span>Clear all</span>
             </button>
           </div>
 
-          <div className="mt-1 divide-y divide-white/5 max-h-64 overflow-y-auto no-scrollbar">
+          <div style={{ marginTop: '4px', maxHeight: '256px', overflowY: 'auto' }}>
             {recentSearches.map((query) => (
               <div
                 key={query}
                 onClick={() => handleSelectRecent(query)}
-                className="group flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-xs hover:bg-white/5 cursor-pointer transition text-slate-200"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  gap: '8px', padding: '8px 10px', borderRadius: '10px',
+                  fontSize: '12px', color: '#cbd5e1', cursor: 'pointer',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(139,92,246,0.08)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Clock className="h-3.5 w-3.5 text-slate-500 group-hover:text-purple-400 transition-colors shrink-0" />
-                  <span className="truncate font-medium group-hover:text-white transition-colors">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                  <Clock style={{ height: '13px', width: '13px', color: '#6366f1', flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
                     {query}
                   </span>
                 </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  <ArrowUpRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-slate-400 transition opacity-0 group-hover:opacity-100" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <ArrowUpRight style={{ height: '13px', width: '13px', color: '#475569' }} />
                   <button
                     type="button"
                     onClick={(e) => handleRemoveSingle(e, query)}
-                    className="p-1 text-slate-500 hover:text-rose-400 hover:bg-white/10 rounded-lg transition active:scale-90"
-                    title={`Remove "${query}" from recent searches`}
+                    style={{ padding: '4px', color: '#475569', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '6px' }}
                     aria-label={`Remove "${query}"`}
                   >
-                    <X className="h-3 w-3" />
+                    <X style={{ height: '12px', width: '12px' }} />
                   </button>
                 </div>
               </div>

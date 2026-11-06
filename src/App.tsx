@@ -430,7 +430,7 @@ export default function App() {
   const autoLeadingVotes = votingState.currentWinner?.voteCount;
 
   return (
-    <div className="min-h-screen w-full bg-[#070612] text-slate-100 flex flex-col font-sans select-none overflow-x-hidden">
+    <div style={{ minHeight: '100dvh', width: '100%', background: '#0b0816', color: '#e2e8f0', display: 'flex', flexDirection: 'column', fontFamily: 'inherit', userSelect: 'none', overflowX: 'hidden' }}>
       {/* PWA Banner if installable */}
       <PWAInstallBanner />
 
@@ -440,11 +440,23 @@ export default function App() {
           <div
             className={`p-2.5 rounded-2xl border shadow-2xl flex items-center justify-between gap-2.5 ${
               announcement.type === 'success'
-                ? 'bg-emerald-950/95 border-emerald-500/60 text-emerald-200'
+                ? 'border-emerald-500/60 text-emerald-200'
                 : announcement.type === 'warning'
-                ? 'bg-amber-950/95 border-amber-500/60 text-amber-200'
-                : 'bg-purple-950/95 border-purple-500/60 text-purple-200'
+                ? 'border-amber-500/60 text-amber-200'
+                : 'border-purple-500/60 text-purple-200'
             }`}
+            style={{
+              background: announcement.type === 'success'
+                ? 'rgba(6,78,59,0.97)'
+                : announcement.type === 'warning'
+                ? 'rgba(78,52,6,0.97)'
+                : 'rgba(46,16,101,0.97)',
+              boxShadow: announcement.type === 'success'
+                ? '0 0 20px rgba(16,185,129,0.25)'
+                : announcement.type === 'warning'
+                ? '0 0 20px rgba(245,158,11,0.25)'
+                : '0 0 20px rgba(139,92,246,0.25)',
+            }}
           >
             <div className="flex items-center gap-2 text-xs font-bold truncate">
               {announcement.type === 'success' ? (
@@ -491,12 +503,12 @@ export default function App() {
       {/* Round & Timer Bar */}
       <div className="px-3 sm:px-6 max-w-7xl w-full mx-auto my-1.5 flex items-center justify-between gap-2 shrink-0 text-xs">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold uppercase tracking-wider text-[10px]">
+          <span style={{ padding: '2px 10px', borderRadius: '999px', background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)', fontWeight: 700, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             Round #{votingState.roundNumber}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14102c] border border-amber-500/30 text-amber-300 font-mono font-bold shadow-sm">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '999px', background: 'rgba(11,8,22,0.8)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', fontFamily: 'monospace', fontWeight: 700, fontSize: '12px' }}>
           <Clock className="h-3.5 w-3.5 animate-spin" />
           <span>{votingState.timeRemainingSeconds}s</span>
         </div>
@@ -505,14 +517,17 @@ export default function App() {
       {/* ============================================================= */}
       {/* MOBILE-FIRST SEGMENTED SWITCHER (Visible on phones, hidden on desktop) */}
       {/* ============================================================= */}
-      <div className="flex md:hidden items-center p-1 bg-[#120f29] border border-purple-900/40 rounded-2xl mx-3 mb-2 shrink-0">
+      <div style={{ display: 'flex', alignItems: 'center', padding: '4px', borderRadius: '16px', margin: '0 12px 8px', background: 'rgba(11,8,22,0.8)', border: '1px solid rgba(139,92,246,0.2)' }} className="md:hidden shrink-0">
         <button
           onClick={() => setMobileTab('votes')}
-          className={`flex-1 py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
-            mobileTab === 'votes'
-              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          style={{
+            flex: 1, padding: '8px', borderRadius: '12px', fontWeight: 700, fontSize: '12px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            transition: 'all 0.2s', border: 'none', cursor: 'pointer',
+            background: mobileTab === 'votes' ? 'linear-gradient(135deg, #8b5cf6, #06b6d4)' : 'transparent',
+            color: mobileTab === 'votes' ? '#fff' : '#94a3b8',
+            boxShadow: mobileTab === 'votes' ? '0 0 12px rgba(139,92,246,0.3)' : 'none',
+          }}
         >
           <Trophy className="h-3.5 w-3.5" />
           <span>Rankings &amp; Chat</span>
@@ -520,11 +535,14 @@ export default function App() {
 
         <button
           onClick={() => setMobileTab('player')}
-          className={`flex-1 py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
-            mobileTab === 'player'
-              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          style={{
+            flex: 1, padding: '8px', borderRadius: '12px', fontWeight: 700, fontSize: '12px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            transition: 'all 0.2s', border: 'none', cursor: 'pointer',
+            background: mobileTab === 'player' ? 'linear-gradient(135deg, #8b5cf6, #06b6d4)' : 'transparent',
+            color: mobileTab === 'player' ? '#fff' : '#94a3b8',
+            boxShadow: mobileTab === 'player' ? '0 0 12px rgba(139,92,246,0.3)' : 'none',
+          }}
         >
           <Music className="h-3.5 w-3.5" />
           <span>Player &amp; Search</span>
@@ -540,34 +558,42 @@ export default function App() {
         {/* LEFT COLUMN (50% on Desktop, Active on Mobile in 'votes' view) */}
         {/* =========================================================== */}
         <section
-          className={`flex-col h-full bg-[#120f29]/90 border border-purple-900/30 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-md overflow-hidden ${
+          className={`flex-col h-full overflow-hidden rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-md ${
             mobileTab === 'votes' ? 'flex' : 'hidden md:flex'
           }`}
+          style={{ background: 'rgba(11,8,22,0.9)', border: '1px solid rgba(139,92,246,0.2)' }}
         >
           {/* Left Column Tabs Header: Comments & Rankings */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/5 shrink-0 mb-3">
-            <div className="flex gap-2">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid rgba(139,92,246,0.1)', marginBottom: '12px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => setActiveLeftTab('rankings')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
-                  activeLeftTab === 'rankings'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-md'
-                    : 'text-slate-400 hover:text-white bg-white/5'
-                }`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px',
+                  fontWeight: 700, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+                  background: activeLeftTab === 'rankings' ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.04)',
+                  color: activeLeftTab === 'rankings' ? '#fbbf24' : '#94a3b8',
+                  boxShadow: activeLeftTab === 'rankings' ? '0 0 10px rgba(251,191,36,0.15)' : 'none',
+                  borderColor: activeLeftTab === 'rankings' ? 'rgba(251,191,36,0.3)' : 'transparent',
+                  outline: activeLeftTab === 'rankings' ? '1px solid rgba(251,191,36,0.3)' : '1px solid transparent',
+                }}
               >
-                <Trophy className="h-3.5 w-3.5" />
+                <Trophy style={{ height: '14px', width: '14px' }} />
                 <span>Rankings</span>
               </button>
 
               <button
                 onClick={() => setActiveLeftTab('chat')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
-                  activeLeftTab === 'chat'
-                    ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30 shadow-md'
-                    : 'text-slate-400 hover:text-white bg-white/5'
-                }`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px',
+                  fontWeight: 700, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+                  background: activeLeftTab === 'chat' ? 'rgba(6,182,212,0.12)' : 'rgba(255,255,255,0.04)',
+                  color: activeLeftTab === 'chat' ? '#06b6d4' : '#94a3b8',
+                  boxShadow: activeLeftTab === 'chat' ? '0 0 10px rgba(6,182,212,0.15)' : 'none',
+                  outline: activeLeftTab === 'chat' ? '1px solid rgba(6,182,212,0.3)' : '1px solid transparent',
+                }}
               >
-                <MessageSquare className="h-3.5 w-3.5" />
+                <MessageSquare style={{ height: '14px', width: '14px' }} />
                 <span>Chat ({streamComments.length})</span>
               </button>
             </div>
@@ -625,37 +651,43 @@ export default function App() {
           </div>
 
           {/* Bottom of Right Column: Search Results & Synced Lyrics Tabs */}
-          <div className="flex-1 rounded-3xl bg-[#120f29]/90 border border-purple-900/30 p-3 sm:p-4 shadow-xl backdrop-blur-md flex flex-col min-h-0 overflow-hidden">
+          <div style={{ flex: 1, borderRadius: '24px', background: 'rgba(11,8,22,0.9)', border: '1px solid rgba(139,92,246,0.2)', padding: '12px 14px', boxShadow: '0 4px 24px rgba(0,0,0,0.3)', backdropFilter: 'blur(12px)', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
             {/* Right Tabs Header */}
-            <div className="flex items-center justify-between pb-2.5 border-b border-white/5 shrink-0 mb-2">
-              <div className="flex gap-2">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '10px', borderBottom: '1px solid rgba(139,92,246,0.1)', marginBottom: '8px', flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={() => setActiveRightTab('search')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
-                    activeRightTab === 'search'
-                      ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-md'
-                      : 'text-slate-400 hover:text-white bg-white/5'
-                  }`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px',
+                    fontWeight: 700, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+                    background: activeRightTab === 'search' ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.04)',
+                    color: activeRightTab === 'search' ? '#a78bfa' : '#94a3b8',
+                    outline: activeRightTab === 'search' ? '1px solid rgba(139,92,246,0.35)' : '1px solid transparent',
+                    boxShadow: activeRightTab === 'search' ? '0 0 10px rgba(139,92,246,0.15)' : 'none',
+                  }}
                 >
-                  <Search className="h-3.5 w-3.5" />
+                  <Search style={{ height: '13px', width: '13px' }} />
                   <span>Results ({searchResults.length})</span>
                 </button>
 
                 <button
                   onClick={() => setActiveRightTab('lyrics')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
-                    activeRightTab === 'lyrics'
-                      ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-md'
-                      : 'text-slate-400 hover:text-white bg-white/5'
-                  }`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '10px',
+                    fontWeight: 700, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'all 0.15s',
+                    background: activeRightTab === 'lyrics' ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.04)',
+                    color: activeRightTab === 'lyrics' ? '#a78bfa' : '#94a3b8',
+                    outline: activeRightTab === 'lyrics' ? '1px solid rgba(139,92,246,0.35)' : '1px solid transparent',
+                    boxShadow: activeRightTab === 'lyrics' ? '0 0 10px rgba(139,92,246,0.15)' : 'none',
+                  }}
                 >
-                  <Mic2 className="h-3.5 w-3.5" />
+                  <Mic2 style={{ height: '13px', width: '13px' }} />
                   <span>Lyrics</span>
                 </button>
               </div>
 
               {currentTrack && (
-                <span className="text-[10px] font-mono text-slate-400 truncate max-w-[140px]">
+                <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
                   {currentTrack.title}
                 </span>
               )}
@@ -714,23 +746,24 @@ export default function App() {
       {/* MOBILE MINI-PLAYER (Sticky at bottom when viewing votes on phone) */}
       {/* ============================================================= */}
       {mobileTab === 'votes' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#120e29]/95 border-t border-purple-900/40 p-2.5 backdrop-blur-md flex items-center justify-between gap-3 shadow-2xl">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 p-2.5 backdrop-blur-md flex items-center justify-between gap-3 shadow-2xl"
+          style={{ background: 'rgba(11,8,22,0.97)', borderTop: '1px solid rgba(139,92,246,0.25)' }}>
           <div
             onClick={() => setMobileTab('player')}
             className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
           >
-            <div className="h-9 w-9 rounded-xl bg-purple-900/60 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
+            <div style={{ height: '36px', width: '36px', borderRadius: '12px', background: 'rgba(139,92,246,0.15)', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(139,92,246,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {currentTrack?.artworkUrl ? (
-                <img src={currentTrack.artworkUrl} alt={currentTrack.title} className="h-full w-full object-cover" />
+                <img src={currentTrack.artworkUrl} alt={currentTrack.title} style={{ height: '100%', width: '100%', objectFit: 'cover' }} />
               ) : (
-                <Music className="h-4 w-4 text-purple-300" />
+                <Music style={{ height: '15px', width: '15px', color: '#8b5cf6' }} />
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-white truncate leading-tight">
+              <p style={{ fontSize: '12px', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
                 {currentTrack?.title || 'No Track'}
               </p>
-              <p className="text-[10px] text-slate-400 truncate">
+              <p style={{ fontSize: '10px', color: '#8b5cf6', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
                 {currentTrack?.artist || 'Tap for Player'} · 0:{Math.round(currentTime).toString().padStart(2, '0')}/0:60
               </p>
             </div>
@@ -739,13 +772,13 @@ export default function App() {
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={handleTogglePlay}
-              className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center active:scale-95 text-xs font-bold"
+              style={{ height: '32px', width: '32px', borderRadius: '50%', background: 'rgba(139,92,246,0.2)', border: '1px solid rgba(139,92,246,0.4)', color: '#a78bfa', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px' }}
             >
               {isPlaying ? '⏸' : '▶'}
             </button>
             <button
               onClick={handleSkipRound}
-              className="h-8 w-8 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center active:scale-95 text-xs font-bold"
+              style={{ height: '32px', width: '32px', borderRadius: '50%', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '14px' }}
             >
               ⏭
             </button>

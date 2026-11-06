@@ -1,6 +1,16 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ============================================================
+   CYBER NEON STAGE — Global Styles
+   Palette:
+     Obsidian background : #0b0816
+     Electric violet     : #8b5cf6
+     Cyber cyan          : #06b6d4
+     Warm gold           : #fbbf24
+   ============================================================ */
+
+/* ── Base layer ─────────────────────────────────────────────── */
 @layer base {
   html, body, #root {
     height: 100%;
@@ -9,7 +19,231 @@
     margin: 0;
     padding: 0;
   }
+
   body {
-    font-family: 'Noto Sans Ethiopic', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Noto Sans Ethiopic', 'Plus Jakarta Sans', system-ui,
+      -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    background-color: #0b0816;
+    /* Ambient radial glow — faint violet bloom at the top-centre */
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% 0%,   rgba(139, 92, 246, 0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 55% 35% at 80% 90%,   rgba(6, 182, 212, 0.10) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 30% at 15% 60%,   rgba(139, 92, 246, 0.07) 0%, transparent 60%);
+    color: #e2e0ea;
   }
+
+  /* ── Custom scrollbar (thin, neon violet / cyan) ── */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #8b5cf6 rgba(11, 8, 22, 0.6);
+  }
+  *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  *::-webkit-scrollbar-track {
+    background: rgba(11, 8, 22, 0.6);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8b5cf6 0%, #06b6d4 100%);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a78bfa 0%, #22d3ee 100%);
+  }
+}
+
+/* ── Keyframe Animations ───────────────────────────────────── */
+
+/* Glowing pulse for neon elements */
+@keyframes neon-pulse {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1) drop-shadow(0 0 4px currentColor);
+  }
+  50% {
+    opacity: 0.75;
+    filter: brightness(1.4) drop-shadow(0 0 12px currentColor) drop-shadow(0 0 24px currentColor);
+  }
+}
+
+/* Equalizer bars — 5 tracks with different heights and timings */
+/* Peak heights: bar-1 → 20px, bar-2 → 30px, bar-3 → 40px, bar-4 → 25px, bar-5 → 35px */
+
+@keyframes eq-bar-1 {
+  0%, 100% { height: 4px;  }
+  25%       { height: 14px; }
+  50%       { height: 20px; }
+  75%       { height: 10px; }
+}
+
+@keyframes eq-bar-2 {
+  0%, 100% { height: 6px;  }
+  20%       { height: 20px; }
+  50%       { height: 30px; }
+  80%       { height: 12px; }
+}
+
+@keyframes eq-bar-3 {
+  0%, 100% { height: 8px;  }
+  30%       { height: 28px; }
+  55%       { height: 40px; }
+  75%       { height: 16px; }
+}
+
+@keyframes eq-bar-4 {
+  0%, 100% { height: 5px;  }
+  35%       { height: 18px; }
+  60%       { height: 25px; }
+  85%       { height: 9px;  }
+}
+
+@keyframes eq-bar-5 {
+  0%, 100% { height: 7px;  }
+  40%       { height: 22px; }
+  65%       { height: 35px; }
+  90%       { height: 14px; }
+}
+
+/* Subtle horizontal scan line sweeping top → bottom */
+@keyframes scan-line {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  5%   { opacity: 0.6; }
+  95%  { opacity: 0.6; }
+  100% { transform: translateY(100vh);  opacity: 0; }
+}
+
+/* Comment bubble sliding in from the bottom with fade */
+@keyframes float-in {
+  0%   { transform: translateY(24px); opacity: 0; }
+  60%  { transform: translateY(-4px);  opacity: 1; }
+  100% { transform: translateY(0px);   opacity: 1; }
+}
+
+/* SVG stroke dashoffset animation placeholder */
+@keyframes count-ring {
+  0%   { stroke-dashoffset: 283; }   /* full circumference of r=45 circle */
+  100% { stroke-dashoffset: 0;   }
+}
+
+/* Very slow vinyl rotation — 60 s per revolution */
+@keyframes spin-slow {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+
+/* Golden glow pulsing shadow */
+@keyframes glow-gold {
+  0%, 100% {
+    box-shadow: 0 0 6px 1px rgba(251, 191, 36, 0.4),
+                0 0 14px 3px rgba(251, 191, 36, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(251, 191, 36, 0.75),
+                0 0 32px 8px rgba(251, 191, 36, 0.35);
+  }
+}
+
+/* ── Utility Classes ───────────────────────────────────────── */
+
+/* Equalizer bar — base */
+.eq-bar {
+  display: inline-block;
+  vertical-align: bottom;
+  width: 3px;
+  min-height: 4px;
+  border-radius: 999px;
+  transition: height 0.1s ease;
+}
+
+/* Individual bar tracks */
+.eq-bar-1 { animation: eq-bar-1 0.9s ease-in-out infinite; }
+.eq-bar-2 { animation: eq-bar-2 1.1s ease-in-out infinite 0.15s; }
+.eq-bar-3 { animation: eq-bar-3 0.8s ease-in-out infinite 0.05s; }
+.eq-bar-4 { animation: eq-bar-4 1.2s ease-in-out infinite 0.25s; }
+.eq-bar-5 { animation: eq-bar-5 1.0s ease-in-out infinite 0.35s; }
+
+/* Neon text glows */
+.neon-violet {
+  text-shadow:
+    0 0 6px  #8b5cf6,
+    0 0 14px #8b5cf6,
+    0 0 28px rgba(139, 92, 246, 0.6);
+}
+
+.neon-cyan {
+  text-shadow:
+    0 0 6px  #06b6d4,
+    0 0 14px #06b6d4,
+    0 0 28px rgba(6, 182, 212, 0.6);
+}
+
+.neon-gold {
+  text-shadow:
+    0 0 6px  #fbbf24,
+    0 0 14px #fbbf24,
+    0 0 28px rgba(251, 191, 36, 0.6);
+}
+
+/* Frosted glass card */
+.glass-panel {
+  background: rgba(11, 8, 22, 0.85);
+  border: 1px solid rgba(139, 92, 246, 0.20);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 4px 24px rgba(139, 92, 246, 0.08),
+    0 1px 4px  rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+}
+
+/* Gradient border via box-shadow + outline trick */
+.cyber-border {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.5),
+    0 0 8px 1px rgba(6, 182, 212, 0.25),
+    0 0 20px 2px rgba(139, 92, 246, 0.12);
+}
+
+/* Scan-line overlay — attach to a positioned parent */
+.scan-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.scan-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(6, 182, 212, 0.35) 40%,
+    rgba(139, 92, 246, 0.50) 60%,
+    transparent 100%
+  );
+  animation: scan-line 4s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Vinyl disc rotation — paused until .playing is added */
+.vinyl-spin {
+  animation: spin-slow 60s linear infinite;
+  animation-play-state: paused;
+}
+.vinyl-spin.playing {
+  animation-play-state: running;
+}
+
+/* Comment bubble float-in */
+.float-comment {
+  animation: float-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

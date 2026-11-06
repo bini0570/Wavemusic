@@ -17,25 +17,41 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
   onForceWin,
 }) => {
   const top10 = leaderboard.slice(0, 10);
-
-  // Dynamically adapt: if votes exist, display real candidates (up to 10).
-  // If blank/standby, show 3 compact placeholder rows so mobile screens stay clean.
   const rows = top10.length > 0 ? top10 : [null, null, null];
+  const maxVotes = top10.length > 0 ? top10[0].voteCount : 1;
 
   return (
-    <div className="flex flex-col h-full rounded-2xl sm:rounded-3xl border border-[#2b2454] bg-[#120f26]/95 backdrop-blur-xl p-2.5 sm:p-3.5 shadow-2xl justify-between overflow-hidden">
-      {/* Header: Trophy + Rankings */}
-      <div className="flex items-center gap-2 mb-1 sm:mb-2 shrink-0">
-        <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-          <Trophy className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      style={{
+        background: 'rgba(11,8,22,0.92)',
+        border: '1px solid rgba(139,92,246,0.25)',
+        borderRadius: '1.5rem',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 0 60px rgba(139,92,246,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+      }}
+    >
+      {/* Header */}
+      <div
+        className="flex items-center gap-2.5 px-3 sm:px-4 py-2.5 shrink-0"
+        style={{ borderBottom: '1px solid rgba(139,92,246,0.15)' }}
+      >
+        <div
+          className="flex h-7 w-7 items-center justify-center rounded-lg"
+          style={{ background: 'rgba(251,191,36,0.15)', boxShadow: '0 0 10px rgba(251,191,36,0.2)' }}
+        >
+          <Trophy className="h-4 w-4" style={{ color: '#fbbf24', fill: '#fbbf24' }} />
         </div>
-        <h2 className="text-xs sm:text-sm font-bold tracking-wide text-white">
+        <h2
+          className="text-xs sm:text-sm font-bold tracking-widest uppercase"
+          style={{ color: '#fbbf24', textShadow: '0 0 10px rgba(251,191,36,0.5)' }}
+        >
           Rankings
         </h2>
       </div>
 
-      {/* Rows List (Clean, scrollable on mobile) */}
-      <div className="flex-1 flex flex-col gap-1.5 min-h-0 overflow-y-auto pr-0.5">
+      {/* Rows */}
+      <div className="flex-1 flex flex-col gap-1.5 min-h-0 overflow-y-auto px-2.5 sm:px-3.5 py-2.5 pr-0.5">
         {rows.map((song, index) => {
           const rank = index + 1;
           const isWinner = rank === 1 && song !== null;
@@ -44,127 +60,151 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
             return (
               <div
                 key={`empty_${rank}`}
-                className="flex items-center justify-between px-2.5 py-1 rounded-lg border border-dashed border-white/5 bg-black/20 opacity-30 text-[11px] text-slate-500"
+                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px]"
+                style={{
+                  border: '1px dashed rgba(255,255,255,0.06)',
+                  background: 'rgba(255,255,255,0.01)',
+                  opacity: 0.35,
+                  color: '#475569',
+                }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-4 text-center font-bold text-slate-500">{rank}</span>
+                  <span className="w-4 text-center font-bold">{rank}</span>
                   <span>No votes yet</span>
                 </div>
-                <span className="text-[10px] text-slate-600">—</span>
+                <span>—</span>
               </div>
             );
           }
 
+          const voteBarPct = Math.round((song.voteCount / maxVotes) * 100);
+
           if (isWinner) {
-            // #1 Leader with Golden Glowing Border
             return (
               <div
                 key={song.groupKey}
                 onClick={() => onForceWin(song)}
-                className="relative flex items-center justify-between px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-[#ffd700] bg-[#1b1638] shadow-[0_0_12px_rgba(255,215,0,0.3)] cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition shrink-0"
+                className="relative flex flex-col px-2.5 sm:px-3 py-2 rounded-xl cursor-pointer transition hover:scale-[1.01] active:scale-[0.99] overflow-hidden shrink-0"
+                style={{
+                  border: '2px solid #fbbf24',
+                  background: 'rgba(251,191,36,0.07)',
+                  boxShadow: '0 0 20px rgba(251,191,36,0.25), inset 0 1px 0 rgba(251,191,36,0.15)',
+                  animation: 'glow-gold 2s ease-in-out infinite',
+                }}
                 title="Click to force play winner"
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  {/* Golden Crown Icon */}
-                  <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded bg-amber-400 text-slate-950 shadow-sm shrink-0">
-                    <Crown className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-slate-950 text-slate-950" />
+                {/* Vote bar behind content */}
+                <div
+                  className="absolute inset-0 opacity-10 transition-all duration-700"
+                  style={{ width: `${voteBarPct}%`, background: 'linear-gradient(90deg, #fbbf24, transparent)' }}
+                />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div
+                      className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded"
+                      style={{ background: '#fbbf24', boxShadow: '0 0 8px #fbbf24' }}
+                    >
+                      <Crown className="h-3 w-3 fill-black text-black" />
+                    </div>
+                    <span className="text-xs font-black font-mono shrink-0" style={{ color: '#fbbf24' }}>#1</span>
+                    <span className="text-xs sm:text-sm font-black truncate" style={{ color: '#fde68a' }}>
+                      {song.displayTitle}
+                    </span>
                   </div>
-
-                  <span className="text-xs sm:text-sm font-black text-amber-400 font-mono shrink-0">
-                    #1
+                  <span
+                    className="shrink-0 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold"
+                    style={{ background: 'rgba(251,191,36,0.2)', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24' }}
+                  >
+                    {song.voteCount}v
                   </span>
-
-                  <span className="text-xs sm:text-sm font-black text-[#ffd700] truncate">
-                    {song.displayTitle}
-                  </span>
-                </div>
-
-                {/* Vote Count Pill */}
-                <div className="shrink-0 px-2 sm:px-2.5 py-0.5 rounded-full bg-[#2a2055] border border-purple-500/30 text-[10px] sm:text-xs font-bold text-[#c4b5fd]">
-                  {song.voteCount} votes
                 </div>
               </div>
             );
           }
 
           if (rank === 2) {
-            // #2 Silver
             return (
               <div
                 key={song.groupKey}
                 onClick={() => onForceWin(song)}
-                className="flex items-center justify-between px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg border border-white/5 bg-[#16122d]/70 hover:bg-[#1a1635] transition cursor-pointer"
+                className="relative flex items-center justify-between px-2.5 sm:px-3 py-1.5 rounded-xl cursor-pointer transition overflow-hidden"
+                style={{
+                  border: '1px solid rgba(203,213,225,0.2)',
+                  background: 'rgba(203,213,225,0.04)',
+                }}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex h-5 w-5 items-center justify-center rounded bg-slate-300 text-slate-950 shrink-0">
-                    <Crown className="h-3 w-3 fill-slate-950 text-slate-950" />
+                <div
+                  className="absolute inset-0 opacity-10 transition-all duration-700"
+                  style={{ width: `${voteBarPct}%`, background: 'linear-gradient(90deg, #94a3b8, transparent)' }}
+                />
+                <div className="relative flex items-center gap-2 min-w-0">
+                  <div className="flex h-5 w-5 items-center justify-center rounded" style={{ background: '#cbd5e1' }}>
+                    <Crown className="h-3 w-3 fill-black text-black" />
                   </div>
-
-                  <span className="text-xs font-bold text-slate-300 font-mono shrink-0">
-                    #2
-                  </span>
-
-                  <span className="text-xs sm:text-sm font-extrabold text-white truncate">
-                    {song.displayTitle}
-                  </span>
+                  <span className="text-xs font-bold font-mono shrink-0" style={{ color: '#94a3b8' }}>#2</span>
+                  <span className="text-xs sm:text-sm font-bold truncate text-white">{song.displayTitle}</span>
                 </div>
-
-                <div className="shrink-0 px-2 sm:px-2.5 py-0.5 rounded-full bg-[#2a2055] border border-purple-500/20 text-[10px] sm:text-xs font-bold text-[#c4b5fd]">
-                  {song.voteCount} votes
-                </div>
+                <span className="relative shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)', color: '#c4b5fd' }}>
+                  {song.voteCount}v
+                </span>
               </div>
             );
           }
 
           if (rank === 3) {
-            // #3 Bronze
             return (
               <div
                 key={song.groupKey}
                 onClick={() => onForceWin(song)}
-                className="flex items-center justify-between px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg border border-white/5 bg-[#16122d]/70 hover:bg-[#1a1635] transition cursor-pointer"
+                className="relative flex items-center justify-between px-2.5 sm:px-3 py-1.5 rounded-xl cursor-pointer transition overflow-hidden"
+                style={{
+                  border: '1px solid rgba(224,122,56,0.3)',
+                  background: 'rgba(224,122,56,0.04)',
+                }}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex h-5 w-5 items-center justify-center rounded bg-[#e07a38] text-white shrink-0">
+                <div
+                  className="absolute inset-0 opacity-10 transition-all duration-700"
+                  style={{ width: `${voteBarPct}%`, background: 'linear-gradient(90deg, #e07a38, transparent)' }}
+                />
+                <div className="relative flex items-center gap-2 min-w-0">
+                  <div className="flex h-5 w-5 items-center justify-center rounded" style={{ background: '#e07a38' }}>
                     <Crown className="h-3 w-3 fill-white text-white" />
                   </div>
-
-                  <span className="text-xs font-bold text-[#e07a38] font-mono shrink-0">
-                    #3
-                  </span>
-
-                  <span className="text-xs sm:text-sm font-extrabold text-white truncate">
-                    {song.displayTitle}
-                  </span>
+                  <span className="text-xs font-bold font-mono shrink-0" style={{ color: '#e07a38' }}>#3</span>
+                  <span className="text-xs sm:text-sm font-bold truncate text-white">{song.displayTitle}</span>
                 </div>
-
-                <div className="shrink-0 px-2 sm:px-2.5 py-0.5 rounded-full bg-[#2a2055] border border-purple-500/20 text-[10px] sm:text-xs font-bold text-[#c4b5fd]">
-                  {song.voteCount} votes
-                </div>
+                <span className="relative shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.25)', color: '#c4b5fd' }}>
+                  {song.voteCount}v
+                </span>
               </div>
             );
           }
 
-          // Ranks 4 to 10
+          // Ranks 4–10
           return (
             <div
               key={song.groupKey}
               onClick={() => onForceWin(song)}
-              className="flex items-center justify-between px-2 sm:px-2.5 py-0.5 rounded-lg border border-transparent hover:border-white/5 hover:bg-[#181332] transition cursor-pointer"
+              className="relative flex items-center justify-between px-2.5 py-1 rounded-lg cursor-pointer transition overflow-hidden"
+              style={{ border: '1px solid transparent' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(139,92,246,0.15)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
             >
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-5 text-center text-xs font-bold text-slate-400 font-mono shrink-0">
+              <div
+                className="absolute inset-0 opacity-[0.07] transition-all duration-700"
+                style={{ width: `${voteBarPct}%`, background: 'linear-gradient(90deg, #8b5cf6, transparent)' }}
+              />
+              <div className="relative flex items-center gap-2 min-w-0">
+                <span className="w-5 text-center text-xs font-bold font-mono shrink-0" style={{ color: '#475569' }}>
                   #{rank}
                 </span>
-
-                <span className="text-xs sm:text-sm font-medium text-slate-100 truncate">
+                <span className="text-xs sm:text-sm font-medium truncate" style={{ color: '#cbd5e1' }}>
                   {song.displayTitle}
                 </span>
               </div>
-
-              <div className="shrink-0 px-2 py-0.5 rounded-full bg-[#2a2055] border border-purple-500/20 text-[10px] sm:text-xs font-bold text-[#c4b5fd]">
-                {song.voteCount} votes
-              </div>
+              <span className="relative shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b7cf8' }}>
+                {song.voteCount}v
+              </span>
             </div>
           );
         })}

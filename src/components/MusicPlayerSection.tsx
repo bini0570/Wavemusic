@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  Shuffle,
-  Repeat,
-  Headphones,
-  Music,
-} from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Music } from 'lucide-react';
 import { Track, SongVoteGroup } from '../types';
 
 interface MusicPlayerSectionProps {
@@ -41,6 +32,80 @@ function formatTime(sec: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// Animated equalizer bars
+const EQVisualizer: React.FC<{ isPlaying: boolean }> = ({ isPlaying }) => (
+  <div
+    className="flex items-end gap-0.5 h-5"
+    style={{ opacity: isPlaying ? 1 : 0.3, transition: 'opacity 0.3s' }}
+  >
+    {[1, 2, 3, 4, 5].map((i) => (
+      <span
+        key={i}
+        className={`eq-bar eq-bar-${i}`}
+        style={{
+          background: i % 2 === 0 ? '#06b6d4' : '#8b5cf6',
+          animationPlayState: isPlaying ? 'running' : 'paused',
+          boxShadow: isPlaying
+            ? i % 2 === 0
+              ? '0 0 6px #06b6d4'
+              : '0 0 6px #8b5cf6'
+            : 'none',
+        }}
+      />
+    ))}
+  </div>
+);
+
+// SVG Countdown Ring — transitions from cyan → yellow → pulsing-red
+const CountdownRing: React.FC<{ timeRemaining: number; duration: number }> = ({
+  timeRemaining,
+  duration,
+}) => {
+  const size = 180;
+  const stroke = 4;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(1, timeRemaining / (duration || 60)));
+  const offset = circumference * (1 - pct);
+
+  let ringColor = '#06b6d4'; // cyan
+  let glow = 'drop-shadow(0 0 6px #06b6d4)';
+  if (pct < 0.4) { ringColor = '#fbbf24'; glow = 'drop-shadow(0 0 8px #fbbf24)'; }
+  if (pct < 0.1) { ringColor = '#ef4444'; glow = 'drop-shadow(0 0 10px #ef4444)'; }
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      className="absolute inset-0"
+      style={{ transform: 'rotate(-90deg)', filter: glow, transition: 'filter 1s' }}
+    >
+      {/* Background track */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="rgba(255,255,255,0.05)"
+        strokeWidth={stroke}
+      />
+      {/* Progress arc */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={ringColor}
+        strokeWidth={stroke}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 1s linear, stroke 1s' }}
+      />
+    </svg>
+  );
+};
+
 export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
   currentTrack,
   isPlaying,
@@ -58,69 +123,138 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
   const [isRepeat, setIsRepeat] = useState(false);
 
   useEffect(() => {
-    if (!isScrubbing) {
-      setScrubTime(currentTime);
-    }
+    if (!isScrubbing) setScrubTime(currentTime);
   }, [currentTime, isScrubbing]);
 
-  const maxDuration = duration > 0 ? duration : 212; // 3:32 default
+  const maxDuration = duration > 0 ? duration : 60;
   const displayCurrent = isScrubbing ? scrubTime : currentTime;
   const progressPercent = Math.min(100, (displayCurrent / maxDuration) * 100);
 
+  const artSize = 180;
+
   return (
-    <div className="flex flex-col h-full rounded-2xl sm:rounded-3xl border border-[#2b2454] bg-[#120f26]/95 backdrop-blur-xl p-2.5 sm:p-3.5 shadow-2xl justify-between overflow-hidden">
-      {/* Header: Headphones + Now Playing */}
-      <div className="flex items-center gap-2 mb-1 sm:mb-2 shrink-0">
-        <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
-          <Headphones className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      style={{
+        background: 'rgba(11,8,22,0.92)',
+        border: '1px solid rgba(139,92,246,0.25)',
+        borderRadius: '1.5rem',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 0 60px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.05)',
+      }}
+    >
+      {/* Header Row */}
+      <div
+        className="flex items-center justify-between px-3 sm:px-4 py-2.5 shrink-0"
+        style={{ borderBottom: '1px solid rgba(139,92,246,0.15)' }}
+      >
+        <div className="flex items-center gap-2">
+          <EQVisualizer isPlaying={isPlaying} />
+          <h2
+            className="text-xs sm:text-sm font-bold tracking-widest uppercase"
+            style={{ color: '#c4b5fd', textShadow: '0 0 10px rgba(139,92,246,0.6)' }}
+          >
+            Now Playing
+          </h2>
         </div>
-        <h2 className="text-xs sm:text-sm font-bold tracking-wide text-white">
-          Now Playing
-        </h2>
+        {isPlaying && (
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            style={{
+              background: 'rgba(6,182,212,0.15)',
+              border: '1px solid rgba(6,182,212,0.4)',
+              color: '#67e8f9',
+              boxShadow: '0 0 8px rgba(6,182,212,0.3)',
+            }}
+          >
+            ● LIVE
+          </span>
+        )}
       </div>
 
-      {/* Album Artwork & Metadata: Compact horizontal on mobile, large centered on desktop */}
-      <div className="flex sm:flex-col items-center gap-3 sm:gap-2 mb-1 sm:mb-2 shrink-0">
+      {/* Album Art with Countdown Ring */}
+      <div className="flex flex-col items-center pt-3 pb-2 shrink-0 px-3">
         <div
+          className="relative flex-shrink-0 cursor-pointer"
+          style={{ width: artSize, height: artSize }}
           onClick={onOpenVideoModal}
-          className="relative h-16 w-16 sm:h-auto sm:w-full sm:flex-1 min-h-[64px] sm:min-h-[110px] max-h-[170px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-lg group cursor-pointer shrink-0 flex items-center justify-center"
-          title="Click to expand video stage"
         >
-          {currentTrack?.artworkUrl ? (
-            <img
-              src={currentTrack.artworkUrl}
-              alt={currentTrack.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-purple-300">
-              <Music className="h-6 w-6 sm:h-10 sm:w-10" />
-            </div>
-          )}
-        </div>
+          {/* SVG Ring on top */}
+          <CountdownRing timeRemaining={maxDuration - displayCurrent} duration={maxDuration} />
 
-        {/* Song Title & Artist */}
-        <div className="text-left sm:text-center min-w-0 flex-1 sm:w-full">
-          <h3 className="text-sm sm:text-base font-black text-white truncate leading-tight">
-            {currentTrack?.title || 'Faded'}
-          </h3>
-          <p className="text-[11px] sm:text-xs font-semibold text-slate-400 truncate mt-0.5">
-            {currentTrack?.artist || 'Alan Walker'}
-          </p>
-        </div>
-      </div>
-
-      {/* Scrubber Progress Slider with 0:15 and 3:32 */}
-      <div className="mb-1 sm:mb-2 shrink-0">
-        <div className="relative flex items-center mb-0.5">
-          {/* Custom styled track */}
-          <div className="relative h-1.5 w-full bg-[#231d42] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 transition-all duration-150"
-              style={{ width: `${progressPercent}%` }}
-            />
+          {/* Vinyl disc + artwork */}
+          <div
+            className={`vinyl-spin ${isPlaying ? 'playing' : ''}`}
+            style={{
+              position: 'absolute',
+              inset: 10,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '3px solid rgba(139,92,246,0.4)',
+              boxShadow: isPlaying
+                ? '0 0 20px rgba(139,92,246,0.5), 0 0 40px rgba(6,182,212,0.2)'
+                : '0 0 10px rgba(0,0,0,0.5)',
+            }}
+          >
+            {currentTrack?.artworkUrl ? (
+              <img
+                src={currentTrack.artworkUrl}
+                alt={currentTrack.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: 'rgba(139,92,246,0.15)' }}
+              >
+                <Music style={{ width: 40, height: 40, color: '#8b5cf6' }} />
+              </div>
+            )}
           </div>
 
+          {/* Center vinyl hole */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%,-50%)',
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              background: '#0b0816',
+              border: '2px solid rgba(139,92,246,0.5)',
+              zIndex: 10,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Song Title & Artist */}
+      <div className="text-center px-4 pb-2 shrink-0">
+        <h3
+          className="text-sm sm:text-base font-black truncate"
+          style={{ color: '#f1f5f9', textShadow: '0 0 15px rgba(139,92,246,0.5)' }}
+        >
+          {currentTrack?.title || 'Faded'}
+        </h3>
+        <p className="text-[11px] sm:text-xs font-semibold truncate mt-0.5" style={{ color: '#67e8f9' }}>
+          {currentTrack?.artist || 'Alan Walker'}
+        </p>
+      </div>
+
+      {/* Progress Scrubber */}
+      <div className="px-4 pb-2 shrink-0">
+        <div className="relative h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          {/* Neon glow fill */}
+          <div
+            className="h-full rounded-full transition-all duration-150"
+            style={{
+              width: `${progressPercent}%`,
+              background: 'linear-gradient(90deg, #8b5cf6, #06b6d4)',
+              boxShadow: '0 0 8px rgba(6,182,212,0.6)',
+            }}
+          />
           <input
             type="range"
             min={0}
@@ -130,32 +264,24 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
             onMouseDown={() => setIsScrubbing(true)}
             onTouchStart={() => setIsScrubbing(true)}
             onChange={(e) => setScrubTime(Number(e.target.value))}
-            onMouseUp={() => {
-              setIsScrubbing(false);
-              onSeek(scrubTime);
-            }}
-            onTouchEnd={() => {
-              setIsScrubbing(false);
-              onSeek(scrubTime);
-            }}
+            onMouseUp={() => { setIsScrubbing(false); onSeek(scrubTime); }}
+            onTouchEnd={() => { setIsScrubbing(false); onSeek(scrubTime); }}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
         </div>
-
-        <div className="flex justify-between text-[10px] sm:text-[11px] font-mono text-slate-400 tabular-nums">
+        <div className="flex justify-between text-[10px] font-mono tabular-nums mt-1" style={{ color: '#475569' }}>
           <span>{formatTime(displayCurrent)}</span>
           <span>{formatTime(maxDuration)}</span>
         </div>
       </div>
 
-      {/* Controls Row: Shuffle | Prev | Play/Pause | Next | Repeat */}
-      <div className="flex items-center justify-between px-2 sm:px-5 mb-1.5 sm:mb-2 shrink-0">
+      {/* Controls */}
+      <div className="flex items-center justify-between px-4 sm:px-6 pb-3 shrink-0">
         {/* Shuffle */}
         <button
           onClick={() => setIsShuffle(!isShuffle)}
-          className={`p-1.5 transition active:scale-90 ${
-            isShuffle ? 'text-purple-400 font-bold' : 'text-slate-400 hover:text-white'
-          }`}
+          className="p-1.5 transition active:scale-90"
+          style={{ color: isShuffle ? '#8b5cf6' : '#475569' }}
           title="Shuffle"
         >
           <Shuffle className="h-4 w-4" />
@@ -164,29 +290,40 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
         {/* Previous */}
         <button
           onClick={onPrev || (() => onSeek(0))}
-          className="p-1.5 text-slate-200 hover:text-white active:scale-90 transition"
+          className="p-2 transition active:scale-90"
+          style={{ color: '#94a3b8' }}
           title="Previous"
         >
           <SkipBack className="h-5 w-5 fill-current" />
         </button>
 
-        {/* Center Glowing Play / Pause Button */}
+        {/* Play / Pause — big neon glow button */}
         <button
           onClick={onTogglePlay}
-          className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white shadow-[0_0_18px_rgba(168,85,247,0.55)] hover:scale-105 active:scale-95 transition"
+          className="flex items-center justify-center rounded-full transition hover:scale-105 active:scale-95"
+          style={{
+            width: 52,
+            height: 52,
+            background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+            boxShadow: isPlaying
+              ? '0 0 25px rgba(139,92,246,0.8), 0 0 50px rgba(6,182,212,0.4)'
+              : '0 0 15px rgba(139,92,246,0.4)',
+            color: '#fff',
+          }}
           title={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
-            <Pause className="h-5 w-5 sm:h-6 sm:w-6 fill-white" />
+            <Pause className="h-6 w-6 fill-white" />
           ) : (
-            <Play className="h-5 w-5 sm:h-6 sm:w-6 fill-white ml-0.5" />
+            <Play className="h-6 w-6 fill-white ml-0.5" />
           )}
         </button>
 
         {/* Next */}
         <button
           onClick={onNext}
-          className="p-1.5 text-slate-200 hover:text-white active:scale-90 transition"
+          className="p-2 transition active:scale-90"
+          style={{ color: '#94a3b8' }}
           title="Next"
         >
           <SkipForward className="h-5 w-5 fill-current" />
@@ -195,9 +332,8 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
         {/* Repeat */}
         <button
           onClick={() => setIsRepeat(!isRepeat)}
-          className={`p-1.5 transition active:scale-90 ${
-            isRepeat ? 'text-purple-400 font-bold' : 'text-slate-400 hover:text-white'
-          }`}
+          className="p-1.5 transition active:scale-90"
+          style={{ color: isRepeat ? '#06b6d4' : '#475569' }}
           title="Repeat"
         >
           <Repeat className="h-4 w-4" />
