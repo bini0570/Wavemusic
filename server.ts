@@ -340,8 +340,17 @@ async function start() {
 
   if (hasBuiltDist) {
     console.log('[WAVE Server] Serving pre-built static bundle from dist/');
-    app.use(express.static(distPath));
+    app.use(
+      express.static(distPath, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.json')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          }
+        },
+      })
+    );
     app.get('*', (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(indexPath);
     });
   } else {

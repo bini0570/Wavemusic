@@ -41,6 +41,15 @@ class ErrorBoundary extends React.Component<
   }
 }
 
+// Auto-update service worker if present
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const reg of registrations) {
+      reg.update().catch(() => {});
+    }
+  });
+}
+
 const rootEl = document.getElementById('root');
 if (rootEl) {
   createRoot(rootEl).render(
