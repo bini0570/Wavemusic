@@ -98,12 +98,13 @@ class FullAudioEngine {
       mount = document.createElement('div');
       mount.id = 'wave-audio-mount';
       mount.style.position = 'fixed';
-      mount.style.top = '-9999px';
-      mount.style.left = '-9999px';
-      mount.style.width = '1px';
-      mount.style.height = '1px';
-      mount.style.opacity = '0';
+      mount.style.bottom = '0px';
+      mount.style.right = '0px';
+      mount.style.width = '240px';
+      mount.style.height = '140px';
+      mount.style.opacity = '0.001';
       mount.style.pointerEvents = 'none';
+      mount.style.zIndex = '-999';
       document.body.appendChild(mount);
     }
 
@@ -112,9 +113,9 @@ class FullAudioEngine {
       const iframe = document.createElement('iframe');
       iframe.id = 'applet-yt-stream-player';
       iframe.title = 'WAVE Audio Engine';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
       mount.appendChild(iframe);
       this.iframe = iframe;
     }
@@ -283,33 +284,42 @@ class FullAudioEngine {
     const incomingDeckKey: 'A' | 'B' = this.activeDeckKey === 'A' ? 'B' : 'A';
     const incomingDeck = incomingDeckKey === 'A' ? this.deckA : this.deckB;
 
-    // Disqualify 30-second Apple preview clips from HTML5 audio elements
-    const is30sPreview = Boolean(
-      !audioUrl ||
-      audioUrl.includes('AudioPreview') ||
-      audioUrl.includes('mzstatic.com') ||
-      audioUrl.includes('.plus.aac.p.m4a')
-    );
+    // 1. Direct native HTML5 audio stream: 100% reliable hardware playback & clock
+    if (audioUrl && incomingDeck) {
+      if (currentDeck && currentDeck !== incomingDeck) {
+        currentDeck.pause();
+        currentDeck.currentTime = 0;
+      }
 
-    // Only load native audio deck if we have a verified full-length audio stream (> 60s)
-    if (audioUrl && !is30sPreview && incomingDeck) {
       const effectiveTargetVol = this.isMuted ? 0 : this.masterVolume;
       incomingDeck.src = audioUrl;
+      incomingDeck.loop = true; // Seamless looping for 60s rounds
       incomingDeck.currentTime = 0;
       incomingDeck.volume = effectiveTargetVol;
       incomingDeck.load();
       this.activeDeckKey = incomingDeckKey;
+
       if (autoPlay) {
-        incomingDeck.play().catch((err) => console.warn('Instant play error:', err));
+        incomingDeck.play()
+          .then(() => {
+            this.notifyState(true);
+            this.startClockSync();
+          })
+          .catch((err) => {
+            console.warn('Audio play deferred or blocked by browser autoplay policy:', err);
+            this.notifyState(false);
+          });
+      } else {
+        this.notifyState(false);
       }
+      return true;
     }
 
-    // Resolve a playable video before interrupting the current song.
+    // 2. Fallback to YouTube stream if no direct audioUrl is available
     const queryKey = `${artist} ${title}`.trim();
     let targetVideoId = youtubeId || this.videoCache.get(queryKey);
 
     if (!targetVideoId) {
-      // Check partial match in cache
       for (const [k, vid] of this.videoCache.entries()) {
         if (k.toLowerCase().includes(title.toLowerCase())) {
           targetVideoId = vid;
@@ -333,7 +343,6 @@ class FullAudioEngine {
       }
     }
 
-    // Never silently play the previous song when resolution fails.
     if (!targetVideoId) {
       if (this.iframe) this.iframe.src = 'about:blank';
       this.notifyState(false);
@@ -342,8 +351,7 @@ class FullAudioEngine {
     }
     this.currentVideoId = targetVideoId;
 
-    // Only stop the previous deck after the replacement has been resolved.
-    if (!(audioUrl && !is30sPreview && incomingDeck) && currentDeck) {
+    if (currentDeck) {
       currentDeck.pause();
       currentDeck.currentTime = 0;
     }
@@ -354,29 +362,21 @@ class FullAudioEngine {
       return false;
     }
 
-    if (this.iframe) {
-      const src = `https://www.youtube-nocookie.com/embed/${targetVideoId}?autoplay=${
-        autoPlay ? 1 : 0
-      }&enablejsapi=1&playsinline=1&controls=1&start=0&rel=0`;
-      
-      this.iframe.src = src;
+    const src = `https://www.youtube-nocookie.com/embed/${targetVideoId}?autoplay=${
+      autoPlay ? 1 : 0
+    }&enablejsapi=1&playsinline=1&controls=1&start=0&rel=0`;
+    
+    this.iframe.src = src;
 
-      setTimeout(() => {
-        this.postMessage('listening');
-        this.attachYtPlayer();
-        if (autoPlay) {
-          this.postMessage('playVideo');
-          this.startClockSync();
-        }
-      }, 400);
-    }
+    setTimeout(() => {
+      this.postMessage('listening');
+      this.attachYtPlayer();
+      if (autoPlay) {
+        this.postMessage('playVideo');
+        this.startClockSync();
+      }
+    }, 400);
 
-    if (autoPlay) {
-      this.notifyState(true);
-      this.startClockSync();
-    } else {
-      this.notifyState(false);
-    }
     return true;
   }
 

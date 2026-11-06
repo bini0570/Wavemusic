@@ -356,16 +356,38 @@ export default function App() {
     }
   }, []);
 
+  // Preload initial default track into audio engine on load
+  useEffect(() => {
+    if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
+      const initial = DEFAULT_TRACKS[0];
+      const streamUrl = initial.fullAudioUrl || initial.previewUrl;
+      fullAudioEngine.loadTrack(
+        initial.artist,
+        initial.title,
+        60,
+        false,
+        initial.youtubeId,
+        streamUrl
+      );
+    }
+  }, []);
+
   // Playback Control Handlers
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
       fullAudioEngine.pause();
       setIsPlaying(false);
     } else {
-      fullAudioEngine.play();
-      setIsPlaying(true);
+      if (currentTrack) {
+        playTrack(currentTrack, true);
+      } else if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
+        playTrack(DEFAULT_TRACKS[0], true);
+      } else {
+        fullAudioEngine.play();
+        setIsPlaying(true);
+      }
     }
-  }, [isPlaying]);
+  }, [isPlaying, currentTrack, playTrack]);
 
   const handleSkipRound = useCallback(() => {
     votingEngineRef.current?.skipRoundNow();
