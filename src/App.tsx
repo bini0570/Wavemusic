@@ -366,6 +366,7 @@ export default function App() {
       {/* Screen 1: Mobile Launchpad (Enter Username & Start) */}
       {!hasStartedLive ? (
         <MobileLaunchScreen
+          key="mobile-launchpad"
           onStart={handleStartLive}
           isLoading={isConnecting}
           errorMessage={launchError}
@@ -373,6 +374,7 @@ export default function App() {
       ) : (
         /* Screen 2: Mobile Portrait 9:16 Broadcast Stage (When Live) */
         <MobileLiveStage
+          key="mobile-live-stage"
           currentTrack={currentTrack}
           isPlaying={isPlaying}
           currentTime={currentTime}
@@ -404,14 +406,6 @@ export default function App() {
         onConnectTikTok={handleConnectTikTok}
         onDisconnectTikTok={handleDisconnectTikTok}
         onInjectComment={handleInjectComment}
-      />
-
-      {/* Audio Engine Hidden YouTube Iframe Mount */}
-      <iframe
-        ref={(el) => fullAudioEngine.setIframe(el)}
-        className="fixed -top-[9999px] -left-[9999px] w-1 h-1 opacity-0 pointer-events-none"
-        title="WAVE Audio Engine"
-        allow="autoplay; encrypted-media"
       />
     </div>
   );

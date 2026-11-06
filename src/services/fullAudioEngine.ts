@@ -91,12 +91,39 @@ class FullAudioEngine {
     });
   }
 
-  public setIframe(el: HTMLIFrameElement | null) {
-    this.iframe = el;
-    if (el && !el.id) {
-      el.id = 'applet-yt-stream-player';
+  private ensureIframe(): HTMLIFrameElement | null {
+    if (typeof document === 'undefined') return null;
+    let mount = document.getElementById('wave-audio-mount');
+    if (!mount) {
+      mount = document.createElement('div');
+      mount.id = 'wave-audio-mount';
+      mount.style.position = 'fixed';
+      mount.style.top = '-9999px';
+      mount.style.left = '-9999px';
+      mount.style.width = '1px';
+      mount.style.height = '1px';
+      mount.style.opacity = '0';
+      mount.style.pointerEvents = 'none';
+      document.body.appendChild(mount);
     }
-    this.attachYtPlayer();
+
+    if (!this.iframe || !document.getElementById('applet-yt-stream-player')) {
+      mount.innerHTML = '';
+      const iframe = document.createElement('iframe');
+      iframe.id = 'applet-yt-stream-player';
+      iframe.title = 'WAVE Audio Engine';
+      iframe.allow = 'autoplay; encrypted-media';
+      iframe.style.width = '1px';
+      iframe.style.height = '1px';
+      mount.appendChild(iframe);
+      this.iframe = iframe;
+    }
+
+    return this.iframe;
+  }
+
+  public setIframe(_el: HTMLIFrameElement | null) {
+    // Managed independently of React to prevent DOM reconciliation collisions
   }
 
   public subscribe(listener: FullAudioEngineListener) {
@@ -132,11 +159,12 @@ class FullAudioEngine {
   }
 
   private attachYtPlayer() {
+    this.ensureIframe();
     if (!this.iframe || !this.isApiReady || !window.YT || !window.YT.Player) return;
 
     try {
       if (this.ytPlayer && typeof this.ytPlayer.destroy === 'function') {
-        this.ytPlayer.destroy();
+        try { this.ytPlayer.destroy(); } catch {}
       }
 
       this.ytPlayer = new window.YT.Player(this.iframe, {
@@ -320,6 +348,7 @@ class FullAudioEngine {
       currentDeck.currentTime = 0;
     }
 
+    this.ensureIframe();
     if (!this.iframe) {
       this.notifyState(false);
       return false;
