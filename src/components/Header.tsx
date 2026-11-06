@@ -40,36 +40,42 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right: TikTok Online/Offline Status & Connect Button */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Status Badge */}
           <div
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border text-[11px] sm:text-xs font-bold transition ${
               isConnected
                 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.25)]'
                 : 'bg-white/5 border-white/10 text-slate-400'
             }`}
           >
             <span
-              className={`h-2 w-2 rounded-full ${
+              className={`h-2 w-2 rounded-full shrink-0 ${
                 isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
               }`}
             />
-            <span className="truncate max-w-[120px] sm:max-w-none">
-              {isConnected ? `${channelName} LIVE` : 'Offline Mode'}
+            <span className="truncate max-w-[90px] sm:max-w-none">
+              <span className="sm:hidden">{isConnected ? 'LIVE' : 'Offline'}</span>
+              <span className="hidden sm:inline">{isConnected ? `${channelName} LIVE` : 'Offline Mode'}</span>
             </span>
           </div>
 
           {/* Connect Button */}
           <button
             onClick={onOpenConnectModal}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition active:scale-95 shadow-md ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl font-bold text-[11px] sm:text-xs uppercase tracking-wider transition active:scale-95 shadow-md ${
               isConnected
                 ? 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
                 : 'bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 text-white shadow-purple-950/50'
             }`}
           >
-            <Radio className={`h-3.5 w-3.5 ${isConnecting ? 'animate-spin' : ''}`} />
-            <span>{isConnecting ? 'Connecting...' : isConnected ? 'Change Channel' : 'Connect TikTok'}</span>
+            <Radio className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 ${isConnecting ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">
+              {isConnecting ? 'Connecting...' : isConnected ? 'Change Channel' : 'Connect TikTok'}
+            </span>
+            <span className="sm:hidden">
+              {isConnecting ? '...' : isConnected ? 'Change' : 'Connect'}
+            </span>
           </button>
 
           {/* DJ Studio Controls Drawer Toggle */}

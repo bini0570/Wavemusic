@@ -65,6 +65,8 @@ export default function App() {
   // Tab selections in 2-column split screen
   const [activeLeftTab, setActiveLeftTab] = useState<'rankings' | 'chat'>('rankings');
   const [activeRightTab, setActiveRightTab] = useState<'search' | 'lyrics'>('search');
+  // Mobile responsive view switcher ('votes' or 'player')
+  const [mobileTab, setMobileTab] = useState<'votes' | 'player'>('votes');
 
   // Toast Notification
   const [announcement, setAnnouncement] = useState<{
@@ -465,7 +467,7 @@ export default function App() {
       </div>
 
       {/* Round & Timer Bar */}
-      <div className="px-3 sm:px-6 max-w-7xl w-full mx-auto my-2 flex items-center justify-between gap-2 shrink-0 text-xs">
+      <div className="px-3 sm:px-6 max-w-7xl w-full mx-auto my-1.5 flex items-center justify-between gap-2 shrink-0 text-xs">
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold uppercase tracking-wider text-[10px]">
             Round #{votingState.roundNumber}
@@ -484,14 +486,47 @@ export default function App() {
       </div>
 
       {/* ============================================================= */}
-      {/* 3. STRICT 50% LEFT / 50% RIGHT SPLIT WORKSPACE                */}
+      {/* MOBILE-FIRST SEGMENTED SWITCHER (Visible on phones, hidden on desktop) */}
       {/* ============================================================= */}
-      <main className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0 px-3 sm:px-6 pb-4 max-w-7xl w-full mx-auto overflow-hidden">
+      <div className="flex md:hidden items-center p-1 bg-[#120f29] border border-purple-900/40 rounded-2xl mx-3 mb-2 shrink-0">
+        <button
+          onClick={() => setMobileTab('votes')}
+          className={`flex-1 py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
+            mobileTab === 'votes'
+              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Trophy className="h-3.5 w-3.5" />
+          <span>1. Comments &amp; Votes</span>
+        </button>
+
+        <button
+          onClick={() => setMobileTab('player')}
+          className={`flex-1 py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
+            mobileTab === 'player'
+              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+              : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Music className="h-3.5 w-3.5" />
+          <span>2. Player &amp; Search</span>
+        </button>
+      </div>
+
+      {/* ============================================================= */}
+      {/* 3. MAIN WORKSPACE: 50% SPLIT (Desktop) / ADAPTIVE TABS (Mobile) */}
+      {/* ============================================================= */}
+      <main className="w-full max-w-7xl mx-auto px-3 sm:px-6 pb-16 md:pb-4 flex-1 min-h-0 overflow-hidden md:grid md:grid-cols-2 md:gap-4">
         
         {/* =========================================================== */}
-        {/* LEFT COLUMN (50%): COMMENTS & RANKINGS                      */}
+        {/* LEFT COLUMN (50% on Desktop, Active on Mobile in 'votes' view) */}
         {/* =========================================================== */}
-        <section className="flex flex-col h-full min-h-[460px] bg-[#120f29]/90 border border-purple-900/30 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-md overflow-hidden">
+        <section
+          className={`flex-col h-full bg-[#120f29]/90 border border-purple-900/30 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-md overflow-hidden ${
+            mobileTab === 'votes' ? 'flex' : 'hidden md:flex'
+          }`}
+        >
           {/* Left Column Tabs Header: Comments & Rankings */}
           <div className="flex items-center justify-between pb-3 border-b border-white/5 shrink-0 mb-3">
             <div className="flex gap-2">
@@ -550,9 +585,13 @@ export default function App() {
         </section>
 
         {/* =========================================================== */}
-        {/* RIGHT COLUMN: SEARCH RESULTS & PLAYING SECTION              */}
+        {/* RIGHT COLUMN (50% on Desktop, Active on Mobile in 'player' view) */}
         {/* =========================================================== */}
-        <section className="flex flex-col h-full min-h-[460px] gap-3 overflow-hidden">
+        <section
+          className={`flex-col h-full gap-3 overflow-hidden ${
+            mobileTab === 'player' ? 'flex' : 'hidden md:flex'
+          }`}
+        >
           {/* Top: Now Playing Music Player Section */}
           <div className="shrink-0">
             <MusicPlayerSection
@@ -656,6 +695,49 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {/* ============================================================= */}
+      {/* MOBILE MINI-PLAYER (Sticky at bottom when viewing votes on phone) */}
+      {/* ============================================================= */}
+      {mobileTab === 'votes' && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#120e29]/95 border-t border-purple-900/40 p-2.5 backdrop-blur-md flex items-center justify-between gap-3 shadow-2xl">
+          <div
+            onClick={() => setMobileTab('player')}
+            className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
+          >
+            <div className="h-9 w-9 rounded-xl bg-purple-900/60 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
+              {currentTrack?.artworkUrl ? (
+                <img src={currentTrack.artworkUrl} alt={currentTrack.title} className="h-full w-full object-cover" />
+              ) : (
+                <Music className="h-4 w-4 text-purple-300" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-black text-white truncate leading-tight">
+                {currentTrack?.title || 'No Track'}
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {currentTrack?.artist || 'Tap for Player'} · 0:{Math.round(currentTime).toString().padStart(2, '0')}/0:60
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleTogglePlay}
+              className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center active:scale-95 text-xs font-bold"
+            >
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+            <button
+              onClick={handleSkipRound}
+              className="h-8 w-8 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center active:scale-95 text-xs font-bold"
+            >
+              ⏭
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================= */}
       {/* 4. TIKTOK CONNECT POPUP MODAL (Appears on clicking Connect)    */}

@@ -79,33 +79,35 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
         </h2>
       </div>
 
-      {/* Album Artwork Stage (Flexes dynamically within available vertical space) */}
-      <div
-        onClick={onOpenVideoModal}
-        className="relative flex-1 min-h-[90px] max-h-[185px] w-full rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-lg mb-1.5 sm:mb-2 group cursor-pointer shrink flex items-center justify-center"
-        title="Click to expand video stage"
-      >
-        {currentTrack?.artworkUrl ? (
-          <img
-            src={currentTrack.artworkUrl}
-            alt={currentTrack.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-purple-300">
-            <Music className="h-10 w-10" />
-          </div>
-        )}
-      </div>
+      {/* Album Artwork & Metadata: Compact horizontal on mobile, large centered on desktop */}
+      <div className="flex sm:flex-col items-center gap-3 sm:gap-2 mb-1 sm:mb-2 shrink-0">
+        <div
+          onClick={onOpenVideoModal}
+          className="relative h-16 w-16 sm:h-auto sm:w-full sm:flex-1 min-h-[64px] sm:min-h-[110px] max-h-[170px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-lg group cursor-pointer shrink-0 flex items-center justify-center"
+          title="Click to expand video stage"
+        >
+          {currentTrack?.artworkUrl ? (
+            <img
+              src={currentTrack.artworkUrl}
+              alt={currentTrack.title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-purple-300">
+              <Music className="h-6 w-6 sm:h-10 sm:w-10" />
+            </div>
+          )}
+        </div>
 
-      {/* Song Title & Artist (Centered as in Mockup) */}
-      <div className="text-center mb-1 sm:mb-2 shrink-0">
-        <h3 className="text-sm sm:text-base font-black text-white truncate leading-tight">
-          {currentTrack?.title || 'Faded'}
-        </h3>
-        <p className="text-[11px] sm:text-xs font-semibold text-slate-400 truncate mt-0.5">
-          {currentTrack?.artist || 'Alan Walker'}
-        </p>
+        {/* Song Title & Artist */}
+        <div className="text-left sm:text-center min-w-0 flex-1 sm:w-full">
+          <h3 className="text-sm sm:text-base font-black text-white truncate leading-tight">
+            {currentTrack?.title || 'Faded'}
+          </h3>
+          <p className="text-[11px] sm:text-xs font-semibold text-slate-400 truncate mt-0.5">
+            {currentTrack?.artist || 'Alan Walker'}
+          </p>
+        </div>
       </div>
 
       {/* Scrubber Progress Slider with 0:15 and 3:32 */}
