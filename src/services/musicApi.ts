@@ -1,5 +1,4 @@
 import { Track } from '../types';
-import { CURATED_TRACKS, DEFAULT_TRACKS } from '../data/curatedTracks';
 
 interface iTunesResult {
   trackId: number;
@@ -91,14 +90,6 @@ export async function searchTracks(query: string): Promise<Track[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
 
-  // Check if we have exact curated matches for quick response or demo tabs
-  const lower = trimmed.toLowerCase();
-  for (const [catName, tracks] of Object.entries(CURATED_TRACKS)) {
-    if (catName.toLowerCase() === lower && tracks.length > 0) {
-      // Still attempt live fetch first, but fallback will be this exact category
-    }
-  }
-
   // Strategy 1: Local Vite proxy `/api/itunes/search`
   try {
     const proxyUrl = `/api/itunes/search?term=${encodeURIComponent(
@@ -145,31 +136,6 @@ export async function searchTracks(query: string): Promise<Track[]> {
     }
   } catch {
     // Direct fetch failed
-  }
-
-  // Strategy 4: Fallback to Curated library matching search query
-  for (const [genre, list] of Object.entries(CURATED_TRACKS)) {
-    if (genre.toLowerCase().includes(lower) || lower.includes(genre.toLowerCase())) {
-      return list;
-    }
-  }
-
-  // Check if any curated track title or artist matches
-  const allCurated = Object.values(CURATED_TRACKS).flat();
-  const matchedCurated = allCurated.filter(
-    (t) =>
-      t.title.toLowerCase().includes(lower) ||
-      t.artist.toLowerCase().includes(lower) ||
-      t.genre.toLowerCase().includes(lower)
-  );
-
-  if (matchedCurated.length > 0) {
-    return matchedCurated;
-  }
-
-  // Default fallback if initial search term is afrobeats or general
-  if (lower.includes('afro') || lower === '') {
-    return DEFAULT_TRACKS;
   }
 
   return [];

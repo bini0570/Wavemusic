@@ -13,13 +13,6 @@ interface SearchBarProps {
 const STORAGE_KEY = 'ym_recent_searches';
 const MAX_RECENT_SEARCHES = 8;
 
-const INITIAL_FALLBACK_SEARCHES = [
-  'Teddy Afro',
-  'Aster Aweke',
-  'Rema Calm Down',
-  'The Weeknd',
-];
-
 export const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   isLoading,
@@ -50,14 +43,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setRecentSearches(parsed.filter((item) => typeof item === 'string' && item.trim().length > 0));
-          return;
         }
       }
-      // Seed with friendly initial suggestions if storage is empty
-      setRecentSearches(INITIAL_FALLBACK_SEARCHES);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_FALLBACK_SEARCHES));
     } catch {
-      setRecentSearches(INITIAL_FALLBACK_SEARCHES);
+      setRecentSearches([]);
     }
   }, []);
 

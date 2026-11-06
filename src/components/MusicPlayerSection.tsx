@@ -236,10 +236,10 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
           className="text-sm sm:text-base font-black truncate"
           style={{ color: '#f1f5f9', textShadow: '0 0 15px rgba(139,92,246,0.5)' }}
         >
-          {currentTrack?.title || 'Faded'}
+          {currentTrack?.title || 'No Track Playing'}
         </h3>
         <p className="text-[11px] sm:text-xs font-semibold truncate mt-0.5" style={{ color: '#67e8f9' }}>
-          {currentTrack?.artist || 'Alan Walker'}
+          {currentTrack?.artist || 'Search or vote for a song'}
         </p>
       </div>
 

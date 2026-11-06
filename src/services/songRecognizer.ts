@@ -1,9 +1,9 @@
 /**
  * WAVE Song Recognition & Grouping Engine:
- * - Detects song requests in TikTok LIVE chat comments.
+ * - Detects song requests dynamically in TikTok LIVE chat comments.
  * - Strips conversational prefixes ("play", "can you please play", "next:").
- * - Groups similar requests into canonical vote buckets (e.g. "blinding lights" = "the weeknd - blinding lights").
- * - Returns structured song title, artist, and canonical group key.
+ * - Extracts artist and song title dynamically from what users type.
+ * - Groups similar requests into the same canonical groupKey.
  */
 
 export interface RecognizedSong {
@@ -12,159 +12,6 @@ export interface RecognizedSong {
   artist: string;
   rawRequest: string;
 }
-
-interface KnownSongPattern {
-  groupKey: string;
-  title: string;
-  artist: string;
-  aliases: string[];
-}
-
-const CANONICAL_SONGS: KnownSongPattern[] = [
-  // Ethiopian Classics & Hits
-  {
-    groupKey: 'mulatu-yegelle-tezeta',
-    title: 'Yegelle Tezeta',
-    artist: 'Mulatu Astatke',
-    aliases: [
-      'yegelle tezeta',
-      'yegel tezeta',
-      'yegelle',
-      'tezeta mulatu',
-      'mulatu tezeta',
-      'mulatu astatke',
-      'ethiopian jazz',
-    ],
-  },
-  {
-    groupKey: 'teddy-afro-gonder',
-    title: 'Gonder',
-    artist: 'Teddy Afro',
-    aliases: [
-      'gonder',
-      'gondar',
-      'teddy afro gonder',
-      'teddy afro gondar',
-      'teddy gonder',
-      'tedros kassahun',
-      'teddy afro',
-    ],
-  },
-  {
-    groupKey: 'aster-aweke-tizita',
-    title: 'Tizita',
-    artist: 'Aster Aweke',
-    aliases: [
-      'tizita aster',
-      'tizita',
-      'aster tizita',
-      'aster aweke tizita',
-      'aster aweke',
-      'aster awke',
-    ],
-  },
-  {
-    groupKey: 'mahmoud-ahmed-tezeta',
-    title: 'Tezeta (Memories)',
-    artist: 'Mahmoud Ahmed',
-    aliases: [
-      'tezeta mahmoud',
-      'mahmoud tezeta',
-      'mahmoud ahmed',
-      'ere mela mela',
-      'mahmud ahmed',
-    ],
-  },
-  {
-    groupKey: 'gigi-guramayle',
-    title: 'Guramayle',
-    artist: 'Gigi',
-    aliases: [
-      'guramayle',
-      'guramaye',
-      'gigi guramayle',
-      'ejigayehu shibabaw',
-      'gigi',
-    ],
-  },
-  {
-    groupKey: 'ropha-fiker-new',
-    title: 'Fiker New',
-    artist: 'Rophnan',
-    aliases: ['rophnan', 'fiker new', 'fiker', 'rophnan fiker', 'rophnan my generation'],
-  },
-
-  // Afrobeats Hits
-  {
-    groupKey: 'rema-calm-down',
-    title: 'Calm Down',
-    artist: 'Rema',
-    aliases: ['calm down', 'rema calm down', 'baby calm down', 'rema', 'calm down rema'],
-  },
-  {
-    groupKey: 'wizkid-essence',
-    title: 'Essence (feat. Tems)',
-    artist: 'Wizkid & Tems',
-    aliases: ['essence', 'wizkid essence', 'essence wizkid', 'wizkid tems', 'essence tems'],
-  },
-  {
-    groupKey: 'burna-boy-last-last',
-    title: 'Last Last',
-    artist: 'Burna Boy',
-    aliases: ['last last', 'burna last last', 'burna boy last last', 'breakfast', 'last last burna'],
-  },
-  {
-    groupKey: 'burna-boy-ye',
-    title: 'Ye',
-    artist: 'Burna Boy',
-    aliases: ['burna ye', 'burna boy ye', 'ye burna boy', 'ye'],
-  },
-  {
-    groupKey: 'asake-lonely-at-the-top',
-    title: 'Lonely At The Top',
-    artist: 'Asake',
-    aliases: ['lonely at the top', 'asake lonely', 'asake lonely at the top', 'asake'],
-  },
-
-  // Global Pop & Viral Hits
-  {
-    groupKey: 'the-weeknd-blinding-lights',
-    title: 'Blinding Lights',
-    artist: 'The Weeknd',
-    aliases: [
-      'blinding lights',
-      'blinding light',
-      'the weeknd',
-      'weeknd blinding lights',
-      'weeknd',
-      'blinding lights weeknd',
-    ],
-  },
-  {
-    groupKey: 'harry-styles-as-it-was',
-    title: 'As It Was',
-    artist: 'Harry Styles',
-    aliases: ['as it was', 'harry styles as it was', 'harry styles', 'as it was harry'],
-  },
-  {
-    groupKey: 'billie-eilish-birds-of-a-feather',
-    title: 'BIRDS OF A FEATHER',
-    artist: 'Billie Eilish',
-    aliases: ['birds of a feather', 'billie eilish birds', 'billie birds of a feather', 'billie eilish'],
-  },
-  {
-    groupKey: 'sabrina-carpenter-espresso',
-    title: 'Espresso',
-    artist: 'Sabrina Carpenter',
-    aliases: ['espresso', 'sabrina carpenter espresso', 'sabrina espresso', 'say you cant sleep'],
-  },
-  {
-    groupKey: 'taylor-swift-cruel-summer',
-    title: 'Cruel Summer',
-    artist: 'Taylor Swift',
-    aliases: ['cruel summer', 'taylor swift cruel summer', 'cruel summer taylor', 'taylor swift'],
-  },
-];
 
 // Built-in smart moderation keywords (profanity, troll text)
 const BLOCKED_WORDS = new Set([
@@ -239,8 +86,8 @@ export function cleanCommentText(rawComment: string): string {
 }
 
 /**
- * Parses an incoming live comment and identifies whether it is a valid song request.
- * Groups similar requests into the same canonical groupKey.
+ * Parses an incoming live comment and identifies whether it is a valid song request dynamically.
+ * Groups similar requests into the same canonical groupKey without any hardcoded song catalog.
  */
 export function recognizeSongRequest(comment: string): RecognizedSong | null {
   if (!comment || comment.trim().length < 2) return null;
@@ -261,40 +108,7 @@ export function recognizeSongRequest(comment: string): RecognizedSong | null {
     if (pattern.test(cleaned)) return null;
   }
 
-  const normalized = cleaned.toLowerCase();
-
-  // 1. Check against Canonical Song Library (Exact or alias matching)
-  for (const song of CANONICAL_SONGS) {
-    // Check main title or artist
-    if (
-      normalized === song.title.toLowerCase() ||
-      normalized === `${song.artist.toLowerCase()} - ${song.title.toLowerCase()}` ||
-      normalized === `${song.title.toLowerCase()} by ${song.artist.toLowerCase()}` ||
-      normalized === `${song.title.toLowerCase()} ${song.artist.toLowerCase()}` ||
-      normalized === `${song.artist.toLowerCase()} ${song.title.toLowerCase()}`
-    ) {
-      return {
-        groupKey: song.groupKey,
-        displayTitle: song.title,
-        artist: song.artist,
-        rawRequest: cleaned,
-      };
-    }
-
-    // Check aliases
-    for (const alias of song.aliases) {
-      if (normalized === alias || normalized.includes(alias)) {
-        return {
-          groupKey: song.groupKey,
-          displayTitle: song.title,
-          artist: song.artist,
-          rawRequest: cleaned,
-        };
-      }
-    }
-  }
-
-  // 2. Parse freeform formats like "Artist - Title", "Artist: Title", "Artist, Title" or "Title by Artist"
+  // 1. Parse freeform formats like "Artist - Title", "Artist: Title", "Artist, Title"
   const separatorMatch = cleaned.match(/\s*[-:,]\s*/);
   if (separatorMatch && separatorMatch.index) {
     const parts = [
@@ -314,6 +128,7 @@ export function recognizeSongRequest(comment: string): RecognizedSong | null {
     }
   }
 
+  // 2. Parse "Title by Artist" format
   if (/\s+by\s+/i.test(cleaned)) {
     const parts = cleaned.split(/\s+by\s+/i);
     if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {

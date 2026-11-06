@@ -17,7 +17,6 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
   onForceWin,
 }) => {
   const top10 = leaderboard.slice(0, 10);
-  const rows = top10.length > 0 ? top10 : [null, null, null];
   const maxVotes = top10.length > 0 ? top10[0].voteCount : 1;
 
   return (
@@ -52,30 +51,16 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
 
       {/* Rows */}
       <div className="flex-1 flex flex-col gap-1.5 min-h-0 overflow-y-auto px-2.5 sm:px-3.5 py-2.5 pr-0.5">
-        {rows.map((song, index) => {
-          const rank = index + 1;
-          const isWinner = rank === 1 && song !== null;
-
-          if (!song) {
-            return (
-              <div
-                key={`empty_${rank}`}
-                className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px]"
-                style={{
-                  border: '1px dashed rgba(255,255,255,0.06)',
-                  background: 'rgba(255,255,255,0.01)',
-                  opacity: 0.35,
-                  color: '#475569',
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-4 text-center font-bold">{rank}</span>
-                  <span>No votes yet</span>
-                </div>
-                <span>—</span>
-              </div>
-            );
-          }
+        {top10.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full py-10 text-center">
+            <Trophy className="h-8 w-8 mb-2" style={{ color: '#1e1b4b' }} />
+            <p className="text-xs font-bold" style={{ color: '#64748b' }}>No votes yet</p>
+            <p className="text-[10px]" style={{ color: '#475569', marginTop: '4px' }}>Send song requests in TikTok chat to vote</p>
+          </div>
+        ) : (
+          top10.map((song, index) => {
+            const rank = index + 1;
+            const isWinner = rank === 1;
 
           const voteBarPct = Math.round((song.voteCount / maxVotes) * 100);
 

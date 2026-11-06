@@ -1,12 +1,11 @@
 import React from 'react';
-import { Radio, Sliders, Zap } from 'lucide-react';
+import { Radio, Zap } from 'lucide-react';
 
 interface HeaderProps {
   isConnected: boolean;
   channelName: string;
   isConnecting?: boolean;
   onOpenConnectModal: () => void;
-  onOpenDrawer?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -14,7 +13,6 @@ export const Header: React.FC<HeaderProps> = ({
   channelName,
   isConnecting = false,
   onOpenConnectModal,
-  onOpenDrawer,
 }) => {
   return (
     <header className="sticky top-0 z-30 shrink-0" style={{ background: 'rgba(11,8,22,0.97)', borderBottom: '1px solid rgba(139,92,246,0.25)', backdropFilter: 'blur(20px)', boxShadow: '0 0 40px rgba(139,92,246,0.15)' }}>
@@ -113,22 +111,6 @@ export const Header: React.FC<HeaderProps> = ({
               {isConnecting ? '...' : isConnected ? 'Change' : 'Connect'}
             </span>
           </button>
-
-          {/* DJ Controls Drawer Button */}
-          {onOpenDrawer && (
-            <button
-              onClick={onOpenDrawer}
-              className="p-2 rounded-xl transition hover:scale-105 active:scale-95"
-              style={{
-                background: 'rgba(139,92,246,0.1)',
-                border: '1px solid rgba(139,92,246,0.25)',
-                color: '#c4b5fd',
-              }}
-              title="DJ Studio Host Controls"
-            >
-              <Sliders className="h-4 w-4" />
-            </button>
-          )}
         </div>
       </div>
     </header>

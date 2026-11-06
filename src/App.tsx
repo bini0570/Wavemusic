@@ -7,7 +7,6 @@ import { LiveCommentsFeed } from './components/LiveCommentsFeed';
 import { MusicPlayerSection } from './components/MusicPlayerSection';
 import { TrackCard } from './components/TrackCard';
 import { LyricsView } from './components/LyricsView';
-import { DJDrawer } from './components/DJDrawer';
 import { PWAInstallBanner } from './components/PWAInstallBanner';
 
 import {
@@ -17,7 +16,6 @@ import {
   VotingRoundState,
 } from './types';
 import { searchTracks } from './services/musicApi';
-import { DEFAULT_TRACKS } from './data/curatedTracks';
 import { fetchLyrics } from './services/lyricsService';
 import { fullAudioEngine } from './services/fullAudioEngine';
 import { VotingEngine } from './services/votingEngine';
@@ -32,25 +30,20 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  Sparkles,
   Music,
 } from 'lucide-react';
 
 export default function App() {
   // Track & playback state
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(DEFAULT_TRACKS[0] || null);
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(() => {
-    return DEFAULT_TRACKS[0]?.trackTimeMillis
-      ? Math.round(DEFAULT_TRACKS[0].trackTimeMillis / 1000)
-      : 212;
-  });
+  const [duration, setDuration] = useState<number>(60);
   const [volume, setVolume] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Search & Library state
-  const [searchResults, setSearchResults] = useState<Track[]>(DEFAULT_TRACKS || []);
+  const [searchResults, setSearchResults] = useState<Track[]>([]);
   const [isLoadingSearch, setIsLoadingSearch] = useState<boolean>(false);
 
   // Lyrics State
@@ -60,7 +53,6 @@ export default function App() {
   // Modals & Panels State
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
   const [isConnectingTikTok, setIsConnectingTikTok] = useState<boolean>(false);
-  const [isDJDrawerOpen, setIsDJDrawerOpen] = useState<boolean>(false);
 
   // Tab selections in 2-column split screen
   const [activeLeftTab, setActiveLeftTab] = useState<'rankings' | 'chat'>('rankings');
@@ -159,7 +151,7 @@ export default function App() {
           }
         }
 
-        // Auto-fallback to #2 contender if #1 stream could not be resolved
+        // Runner-up fallback
         const runnerUp = votingState.leaderboard.find((s) => s.groupKey !== winner.groupKey);
         if (runnerUp) {
           const runnerQuery = `${runnerUp.displayTitle} ${
@@ -172,18 +164,8 @@ export default function App() {
           }
         }
 
-        // Curated fallback so music never cuts out
-        if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
-          const fallbackTrack = DEFAULT_TRACKS[roundNumber % DEFAULT_TRACKS.length];
-          return await playTrack(fallbackTrack, true);
-        }
-
         return false;
       } catch {
-        if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
-          const fallbackTrack = DEFAULT_TRACKS[roundNumber % DEFAULT_TRACKS.length];
-          return await playTrack(fallbackTrack, true);
-        }
         return false;
       }
     },
@@ -356,22 +338,6 @@ export default function App() {
     }
   }, []);
 
-  // Preload initial default track into audio engine on load
-  useEffect(() => {
-    if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
-      const initial = DEFAULT_TRACKS[0];
-      const streamUrl = initial.fullAudioUrl || initial.previewUrl;
-      fullAudioEngine.loadTrack(
-        initial.artist,
-        initial.title,
-        60,
-        false,
-        initial.youtubeId,
-        streamUrl
-      );
-    }
-  }, []);
-
   // Playback Control Handlers
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
@@ -380,8 +346,6 @@ export default function App() {
     } else {
       if (currentTrack) {
         playTrack(currentTrack, true);
-      } else if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
-        playTrack(DEFAULT_TRACKS[0], true);
       } else {
         fullAudioEngine.play();
         setIsPlaying(true);
@@ -391,10 +355,6 @@ export default function App() {
 
   const handleSkipRound = useCallback(() => {
     votingEngineRef.current?.skipRoundNow();
-  }, []);
-
-  const handleResetTimer = useCallback(() => {
-    votingEngineRef.current?.resetRoundTimer();
   }, []);
 
   const handleSeek = useCallback((seconds: number) => {
@@ -484,7 +444,6 @@ export default function App() {
         channelName={votingState.channelName}
         isConnecting={isConnectingTikTok}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}
-        onOpenDrawer={() => setIsDJDrawerOpen(true)}
       />
 
       {/* ============================================================= */}
@@ -797,25 +756,6 @@ export default function App() {
         isConnecting={isConnectingTikTok}
         onConnect={handleConnectTikTok}
         onDisconnect={handleDisconnectTikTok}
-      />
-
-      {/* Slide-Over DJ Host Controls Drawer */}
-      <DJDrawer
-        isOpen={isDJDrawerOpen}
-        onClose={() => setIsDJDrawerOpen(false)}
-        votingState={votingState}
-        recentComments={streamComments}
-        isPlaying={isPlaying}
-        volume={volume}
-        isMuted={isMuted}
-        onTogglePlay={handleTogglePlay}
-        onSkipRound={handleSkipRound}
-        onResetTimer={handleResetTimer}
-        onChangeVolume={(v) => setVolume(v)}
-        onToggleMute={() => setIsMuted((prev) => !prev)}
-        onConnectTikTok={handleConnectTikTok}
-        onDisconnectTikTok={handleDisconnectTikTok}
-        onInjectComment={handleInjectComment}
       />
     </div>
   );
