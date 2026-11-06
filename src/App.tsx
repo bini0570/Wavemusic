@@ -1,37 +1,72 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MobileLaunchScreen } from './components/MobileLaunchScreen';
-import { MobileLiveStage } from './components/MobileLiveStage';
+import { Header } from './components/Header';
+import { SearchBar } from './components/SearchBar';
+import { TikTokConnectModal } from './components/TikTokConnectModal';
+import { Top10RankingTable } from './components/Top10RankingTable';
+import { LiveCommentsFeed } from './components/LiveCommentsFeed';
+import { MusicPlayerSection } from './components/MusicPlayerSection';
+import { TrackCard } from './components/TrackCard';
+import { LyricsView } from './components/LyricsView';
 import { DJDrawer } from './components/DJDrawer';
-import { Track, TikTokComment, SongVoteGroup, VotingRoundState } from './types';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
+
+import {
+  Track,
+  TikTokComment,
+  SongVoteGroup,
+  VotingRoundState,
+} from './types';
 import { searchTracks } from './services/musicApi';
+import { DEFAULT_TRACKS } from './data/curatedTracks';
 import { fetchLyrics } from './services/lyricsService';
 import { fullAudioEngine } from './services/fullAudioEngine';
 import { VotingEngine } from './services/votingEngine';
 import { tiktokLiveService } from './services/tiktokLiveService';
 import { soundEffects } from './services/soundEffectsService';
 import { LyricLine } from './data/lyrics';
-import { DEFAULT_TRACKS } from './data/curatedTracks';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import {
+  Trophy,
+  MessageSquare,
+  Search,
+  Mic2,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Sparkles,
+  Music,
+} from 'lucide-react';
 
 export default function App() {
-  // Mobile Launch State
-  const [hasStartedLive, setHasStartedLive] = useState<boolean>(false);
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  const [launchError, setLaunchError] = useState<string | null>(null);
-
-  // Track & Playback state (starts 100% blank waiting for live chat requests)
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  // Track & playback state
+  const [currentTrack, setCurrentTrack] = useState<Track | null>(DEFAULT_TRACKS[0] || null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(() => {
+    return DEFAULT_TRACKS[0]?.trackTimeMillis
+      ? Math.round(DEFAULT_TRACKS[0].trackTimeMillis / 1000)
+      : 212;
+  });
   const [volume, setVolume] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+
+  // Search & Library state
+  const [searchResults, setSearchResults] = useState<Track[]>(DEFAULT_TRACKS || []);
+  const [isLoadingSearch, setIsLoadingSearch] = useState<boolean>(false);
 
   // Lyrics State
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [isLyricsLoading, setIsLyricsLoading] = useState<boolean>(false);
 
-  // Drawer & Announcement
+  // Modals & Panels State
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
+  const [isConnectingTikTok, setIsConnectingTikTok] = useState<boolean>(false);
   const [isDJDrawerOpen, setIsDJDrawerOpen] = useState<boolean>(false);
+
+  // Tab selections in 2-column split screen
+  const [activeLeftTab, setActiveLeftTab] = useState<'rankings' | 'chat'>('rankings');
+  const [activeRightTab, setActiveRightTab] = useState<'search' | 'lyrics'>('search');
+
+  // Toast Notification
   const [announcement, setAnnouncement] = useState<{
     type: 'success' | 'warning' | 'info';
     message: string;
@@ -72,8 +107,12 @@ export default function App() {
     setCurrentTrack(track);
     setCurrentTime(0);
 
+    const fullSec = track.trackTimeMillis
+      ? Math.round(track.trackTimeMillis / 1000)
+      : (track.previewDurationSec || 60);
+    setDuration(fullSec);
+
     const streamUrl = track.fullAudioUrl || track.previewUrl;
-    // Set 60-second limit
     const started = await fullAudioEngine.loadTrack(
       track.artist,
       track.title,
@@ -87,7 +126,7 @@ export default function App() {
     return started;
   }, []);
 
-  // Handle Winner Selection when 60s concludes
+  // Handle Winner Selection when 60s round concludes
   const handleWinnerSelected = useCallback(
     async (winner: SongVoteGroup, roundNumber: number): Promise<boolean> => {
       soundEffects.playWinnerFanfare();
@@ -98,7 +137,7 @@ export default function App() {
 
       setAnnouncement({
         type: 'info',
-        message: `Winner: "${winner.displayTitle}" (${winner.voteCount} votes)! Loading 60s track...`,
+        message: `60s Round Concluded! Winner: "${winner.displayTitle}" (${winner.voteCount} votes). Loading track...`,
       });
 
       try {
@@ -106,6 +145,7 @@ export default function App() {
 
         if (results.length > 0) {
           const winningTrack = results[0];
+          setSearchResults(results);
           const started = await playTrack(winningTrack, true);
 
           if (started) {
@@ -117,59 +157,42 @@ export default function App() {
           }
         }
 
-        // Auto-fallback to #2 contender if #1 stream could not be resolved!
+        // Auto-fallback to #2 contender if #1 stream could not be resolved
         const runnerUp = votingState.leaderboard.find((s) => s.groupKey !== winner.groupKey);
         if (runnerUp) {
-          setAnnouncement({
-            type: 'warning',
-            message: `Could not stream "${winner.displayTitle}". Auto-falling back to #2: "${runnerUp.displayTitle}"!`,
-          });
           const runnerQuery = `${runnerUp.displayTitle} ${
             runnerUp.artist !== 'Viewer Request' ? runnerUp.artist : ''
           }`.trim();
           const runnerResults = await searchTracks(runnerQuery);
           if (runnerResults.length > 0) {
+            setSearchResults(runnerResults);
             return await playTrack(runnerResults[0], true);
           }
         }
 
-        // Safe fallback to curated track so live stream never goes silent
+        // Curated fallback so music never cuts out
         if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
           const fallbackTrack = DEFAULT_TRACKS[roundNumber % DEFAULT_TRACKS.length];
-          setAnnouncement({
-            type: 'warning',
-            message: `"${winner.displayTitle}" not found on stream. Playing top hit: "${fallbackTrack.title}"!`,
-          });
           return await playTrack(fallbackTrack, true);
         }
 
-        setAnnouncement({
-          type: 'warning',
-          message: `Could not resolve stream for "${winner.displayTitle}".`,
-        });
         return false;
       } catch {
         if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
           const fallbackTrack = DEFAULT_TRACKS[roundNumber % DEFAULT_TRACKS.length];
           return await playTrack(fallbackTrack, true);
         }
-        setAnnouncement({
-          type: 'warning',
-          message: `Network error loading "${winner.displayTitle}".`,
-        });
         return false;
       }
     },
     [playTrack, votingState.leaderboard]
   );
 
-  // Handle 0 votes received at round end (Pause & wait for chat)
-  const handleNoVotes = useCallback(() => {
-    fullAudioEngine.pause();
-    setIsPlaying(false);
+  // Handle 0 votes received at round end
+  const handleNoVotes = useCallback((roundNumber: number) => {
     setAnnouncement({
-      type: 'warning',
-      message: 'No votes received this round. Music paused waiting for chat requests...',
+      type: 'info',
+      message: `Round #${roundNumber} finished with no new votes. Music continues playing.`,
     });
   }, []);
 
@@ -186,16 +209,18 @@ export default function App() {
       setStreamComments((prev) => [comment, ...prev.slice(0, 50)]);
     });
 
-    // Wire real TikTok LIVE connector
+    // Real TikTok LIVE Connector subscriptions
     const unsubTikTokStatus = tiktokLiveService.onStatus((status) => {
+      setIsConnectingTikTok(false);
       engine.setIsConnected(status.connected, status.channel);
-      setIsConnecting(false);
       if (status.connected) {
-        setLaunchError(null);
-      }
-      if (status.message) {
         setAnnouncement({
-          type: status.connected ? 'success' : 'info',
+          type: 'success',
+          message: `Connected to @${status.channel.replace(/^@/, '')} LIVE! Chat votes are streaming in.`,
+        });
+      } else if (status.message) {
+        setAnnouncement({
+          type: 'info',
           message: status.message,
         });
       }
@@ -211,11 +236,10 @@ export default function App() {
     });
 
     const unsubTikTokError = tiktokLiveService.onError((errMsg) => {
-      setIsConnecting(false);
-      setLaunchError(errMsg);
+      setIsConnectingTikTok(false);
       setAnnouncement({
         type: 'warning',
-        message: errMsg,
+        message: `TikTok Notice: ${errMsg}`,
       });
     });
 
@@ -250,9 +274,9 @@ export default function App() {
   // Hardware clock sync with fullAudioEngine
   useEffect(() => {
     const unsubscribe = fullAudioEngine.subscribe({
-      onTimeUpdate: (time) => {
-        // Clamp to 60 seconds
+      onTimeUpdate: (time, dur) => {
         setCurrentTime(Math.min(60, time));
+        if (dur > 0) setDuration(dur);
       },
       onStateChange: (playing) => {
         setIsPlaying(playing);
@@ -299,28 +323,38 @@ export default function App() {
     };
   }, [currentTrack]);
 
-  // Start Live Show from Mobile Launch Screen
-  const handleStartLive = useCallback(
-    (username: string, mode: 'tiktok' | 'offline' = 'tiktok') => {
-      setHasStartedLive(true);
-      if (mode === 'tiktok') {
-        setIsConnecting(true);
-        tiktokLiveService.connect(username);
+  // Search Functionality
+  const handleSearch = useCallback(async (query: string) => {
+    const q = query.trim();
+    if (!q) return;
+    setIsLoadingSearch(true);
+    setActiveRightTab('search');
+
+    try {
+      const results = await searchTracks(q);
+      setSearchResults(results);
+      if (results.length > 0) {
         setAnnouncement({
-          type: 'info',
-          message: `Attempting live connection to @${username.replace(/^@/, '')}...`,
+          type: 'success',
+          message: `Found ${results.length} songs for "${q}". Tap any track to play!`,
         });
       } else {
         setAnnouncement({
-          type: 'success',
-          message: `DJ Stage Active! Type song requests below to test.`,
+          type: 'warning',
+          message: `No songs found for "${q}". Try another search term.`,
         });
       }
-    },
-    []
-  );
+    } catch {
+      setAnnouncement({
+        type: 'warning',
+        message: `Network error searching for "${q}".`,
+      });
+    } finally {
+      setIsLoadingSearch(false);
+    }
+  }, []);
 
-  // Host Controls
+  // Playback Control Handlers
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) {
       fullAudioEngine.pause();
@@ -339,22 +373,44 @@ export default function App() {
     votingEngineRef.current?.resetRoundTimer();
   }, []);
 
+  const handleSeek = useCallback((seconds: number) => {
+    setCurrentTime(seconds);
+    fullAudioEngine.seekTo(seconds);
+  }, []);
+
+  // TikTok Connect & Disconnect
   const handleConnectTikTok = useCallback((username: string) => {
+    setIsConnectingTikTok(true);
+    setAnnouncement({
+      type: 'info',
+      message: `Connecting to @${username.replace(/^@/, '')}...`,
+    });
     tiktokLiveService.connect(username);
   }, []);
 
   const handleDisconnectTikTok = useCallback(() => {
     tiktokLiveService.disconnect();
-    setHasStartedLive(false);
+    votingEngineRef.current?.setIsConnected(false);
+    setAnnouncement({
+      type: 'info',
+      message: 'Disconnected from TikTok stream.',
+    });
   }, []);
 
   const handleInjectComment = useCallback((text: string, user = 'host') => {
     votingEngineRef.current?.ingestComment(text, user);
   }, []);
 
+  // Auto-sync search bar with leading comment query
+  const autoLeadingQuery = votingState.currentWinner?.displayTitle;
+  const autoLeadingVotes = votingState.currentWinner?.voteCount;
+
   return (
-    <div className="relative min-h-screen w-screen bg-[#0c0a1a] text-white overflow-hidden">
-      {/* Toast Notification */}
+    <div className="min-h-screen w-full bg-[#070612] text-slate-100 flex flex-col font-sans select-none overflow-x-hidden">
+      {/* PWA Banner if installable */}
+      <PWAInstallBanner />
+
+      {/* Toast Notification Banner */}
       {announcement && (
         <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[calc(100%-2rem)] animate-in fade-in slide-in-from-top-2 duration-300">
           <div
@@ -384,33 +440,237 @@ export default function App() {
         </div>
       )}
 
-      {/* Screen 1: Mobile Launchpad (Enter Username & Start) */}
-      {!hasStartedLive ? (
-        <MobileLaunchScreen
-          key="mobile-launchpad"
-          onStart={handleStartLive}
-          isLoading={isConnecting}
-        />
-      ) : (
-        /* Screen 2: Mobile Portrait 9:16 Broadcast Stage (When Live) */
-        <MobileLiveStage
-          key="mobile-live-stage"
-          currentTrack={currentTrack}
-          isPlaying={isPlaying}
-          currentTime={currentTime}
-          votingState={votingState}
-          lyrics={lyrics}
-          isLyricsLoading={isLyricsLoading}
-          isMuted={isMuted}
-          onTogglePlay={handleTogglePlay}
-          onToggleMute={() => setIsMuted((prev) => !prev)}
-          onSkipTrack={handleSkipRound}
-          onOpenDrawer={() => setIsDJDrawerOpen(true)}
-          onInjectComment={handleInjectComment}
-        />
-      )}
+      {/* ============================================================= */}
+      {/* 1. TOP HEADER BANNER (WAVE Name + TikTok Offline/Online Pill)  */}
+      {/* ============================================================= */}
+      <Header
+        isConnected={votingState.isConnected}
+        channelName={votingState.channelName}
+        isConnecting={isConnectingTikTok}
+        onOpenConnectModal={() => setIsConnectModalOpen(true)}
+        onOpenDrawer={() => setIsDJDrawerOpen(true)}
+      />
 
-      {/* Slide-Over DJ Host Drawer */}
+      {/* ============================================================= */}
+      {/* 2. SEARCH FIELD (Positioned directly below top banner)         */}
+      {/* ============================================================= */}
+      <div className="px-3 sm:px-6 max-w-7xl w-full mx-auto shrink-0">
+        <SearchBar
+          onSearch={handleSearch}
+          isLoading={isLoadingSearch}
+          autoLeadingQuery={autoLeadingQuery}
+          autoLeadingVotes={autoLeadingVotes}
+          timeRemaining={votingState.timeRemainingSeconds}
+        />
+      </div>
+
+      {/* Round & Timer Bar */}
+      <div className="px-3 sm:px-6 max-w-7xl w-full mx-auto my-2 flex items-center justify-between gap-2 shrink-0 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold uppercase tracking-wider text-[10px]">
+            Round #{votingState.roundNumber}
+          </span>
+          <span className="text-slate-400 font-medium hidden sm:inline">
+            {votingState.isWaitingForVotes ? 'Standby: comment song to start' : '60s voting round in progress'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14102c] border border-amber-500/30 text-amber-300 font-mono font-bold shadow-sm">
+            <Clock className="h-3.5 w-3.5 animate-spin" />
+            <span>{votingState.timeRemainingSeconds}s remaining</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================= */}
+      {/* 3. SPLIT SCREEN BY 2 (Grid 2 Columns on Desktop, Stacked Mobile) */}
+      {/* ============================================================= */}
+      <main className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 px-3 sm:px-6 pb-4 max-w-7xl w-full mx-auto overflow-hidden">
+        
+        {/* =========================================================== */}
+        {/* LEFT COLUMN: VOTE COMMENTS & TOP LEADERBOARD                */}
+        {/* =========================================================== */}
+        <section className="flex flex-col h-full min-h-[460px] bg-[#120f29]/90 border border-purple-900/30 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-md overflow-hidden">
+          {/* Left Column Tabs Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-white/5 shrink-0 mb-3">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveLeftTab('rankings')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
+                  activeLeftTab === 'rankings'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-md'
+                    : 'text-slate-400 hover:text-white bg-white/5'
+                }`}
+              >
+                <Trophy className="h-3.5 w-3.5" />
+                <span>Top 10 Rankings</span>
+              </button>
+
+              <button
+                onClick={() => setActiveLeftTab('chat')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
+                  activeLeftTab === 'chat'
+                    ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30 shadow-md'
+                    : 'text-slate-400 hover:text-white bg-white/5'
+                }`}
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span>Live Chat Log ({streamComments.length})</span>
+              </button>
+            </div>
+
+            <span className="text-[10px] font-mono text-purple-300 hidden sm:inline">
+              1 vote/viewer
+            </span>
+          </div>
+
+          {/* Tab Content 1: Top 10 Ranking Table */}
+          {activeLeftTab === 'rankings' ? (
+            <div className="flex-1 overflow-hidden min-h-0 flex flex-col justify-between">
+              <Top10RankingTable
+                leaderboard={votingState.leaderboard}
+                timeRemainingSeconds={votingState.timeRemainingSeconds}
+                durationSeconds={votingState.durationSeconds}
+                roundNumber={votingState.roundNumber}
+                recentComments={streamComments}
+                onForceWin={(song) => handleWinnerSelected(song, votingState.roundNumber)}
+                onSendComment={(comment, user) => handleInjectComment(comment, user)}
+              />
+            </div>
+          ) : (
+            /* Tab Content 2: Live Comments Feed */
+            <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
+              <LiveCommentsFeed
+                comments={streamComments}
+                onSendComment={(comment, user) => handleInjectComment(comment, user)}
+              />
+            </div>
+          )}
+        </section>
+
+        {/* =========================================================== */}
+        {/* RIGHT COLUMN: SEARCH RESULTS & PLAYING SECTION              */}
+        {/* =========================================================== */}
+        <section className="flex flex-col h-full min-h-[460px] gap-3 overflow-hidden">
+          {/* Top: Now Playing Music Player Section */}
+          <div className="shrink-0">
+            <MusicPlayerSection
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              currentTime={currentTime}
+              duration={duration}
+              volume={volume}
+              isMuted={isMuted}
+              upcomingWinner={votingState.currentWinner}
+              onTogglePlay={handleTogglePlay}
+              onNext={handleSkipRound}
+              onPrev={() => handleSeek(0)}
+              onSeek={handleSeek}
+              onVolumeChange={(v) => setVolume(v)}
+              onToggleMute={() => setIsMuted(!isMuted)}
+            />
+          </div>
+
+          {/* Bottom of Right Column: Search Results & Synced Lyrics Tabs */}
+          <div className="flex-1 rounded-3xl bg-[#120f29]/90 border border-purple-900/30 p-3 sm:p-4 shadow-xl backdrop-blur-md flex flex-col min-h-0 overflow-hidden">
+            {/* Right Tabs Header */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-white/5 shrink-0 mb-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveRightTab('search')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
+                    activeRightTab === 'search'
+                      ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-md'
+                      : 'text-slate-400 hover:text-white bg-white/5'
+                  }`}
+                >
+                  <Search className="h-3.5 w-3.5" />
+                  <span>Search Results ({searchResults.length})</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveRightTab('lyrics')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition ${
+                    activeRightTab === 'lyrics'
+                      ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-md'
+                      : 'text-slate-400 hover:text-white bg-white/5'
+                  }`}
+                >
+                  <Mic2 className="h-3.5 w-3.5" />
+                  <span>Karaoke Lyrics</span>
+                </button>
+              </div>
+
+              <span className="text-[10px] font-mono text-slate-400">
+                {currentTrack ? currentTrack.title : 'No Track Selected'}
+              </span>
+            </div>
+
+            {/* Right Tab Content 1: Search Results List */}
+            {activeRightTab === 'search' ? (
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
+                {searchResults.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full py-10 text-center text-slate-500">
+                    <Music className="h-8 w-8 text-slate-600 mb-2" />
+                    <p className="text-xs">No search results yet.</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Use the search bar above to look up songs.</p>
+                  </div>
+                ) : (
+                  searchResults.map((t) => (
+                    <TrackCard
+                      key={t.id}
+                      track={t}
+                      isPlaying={isPlaying && currentTrack?.id === t.id}
+                      isCurrent={currentTrack?.id === t.id}
+                      isFavorite={false}
+                      onPlayToggle={() => {
+                        if (currentTrack?.id === t.id) {
+                          handleTogglePlay();
+                        } else {
+                          playTrack(t, true);
+                        }
+                      }}
+                      onToggleFavorite={() => {}}
+                      onSelectTrack={() => playTrack(t, true)}
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
+              /* Right Tab Content 2: Synced Karaoke Lyrics View */
+              <div className="flex-1 overflow-hidden min-h-0">
+                <LyricsView
+                  currentTrack={currentTrack}
+                  lyrics={lyrics}
+                  currentTime={currentTime}
+                  isPlaying={isPlaying}
+                  isLoading={isLyricsLoading}
+                  isSynced={true}
+                  hideHeader={true}
+                  onSeek={handleSeek}
+                  className="h-full"
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+
+      {/* ============================================================= */}
+      {/* 4. TIKTOK CONNECT POPUP MODAL (Appears on clicking Connect)    */}
+      {/* ============================================================= */}
+      <TikTokConnectModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        isConnected={votingState.isConnected}
+        channelName={votingState.channelName}
+        isConnecting={isConnectingTikTok}
+        onConnect={handleConnectTikTok}
+        onDisconnect={handleDisconnectTikTok}
+      />
+
+      {/* Slide-Over DJ Host Controls Drawer */}
       <DJDrawer
         isOpen={isDJDrawerOpen}
         onClose={() => setIsDJDrawerOpen(false)}
