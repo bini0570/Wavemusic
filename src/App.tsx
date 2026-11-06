@@ -10,6 +10,7 @@ import { VotingEngine } from './services/votingEngine';
 import { tiktokLiveService } from './services/tiktokLiveService';
 import { soundEffects } from './services/soundEffectsService';
 import { LyricLine } from './data/lyrics';
+import { DEFAULT_TRACKS } from './data/curatedTracks';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function App() {
@@ -132,12 +133,26 @@ export default function App() {
           }
         }
 
+        // Safe fallback to curated track so live stream never goes silent
+        if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
+          const fallbackTrack = DEFAULT_TRACKS[roundNumber % DEFAULT_TRACKS.length];
+          setAnnouncement({
+            type: 'warning',
+            message: `"${winner.displayTitle}" not found on stream. Playing top hit: "${fallbackTrack.title}"!`,
+          });
+          return await playTrack(fallbackTrack, true);
+        }
+
         setAnnouncement({
           type: 'warning',
           message: `Could not resolve stream for "${winner.displayTitle}".`,
         });
         return false;
       } catch {
+        if (DEFAULT_TRACKS && DEFAULT_TRACKS.length > 0) {
+          const fallbackTrack = DEFAULT_TRACKS[roundNumber % DEFAULT_TRACKS.length];
+          return await playTrack(fallbackTrack, true);
+        }
         setAnnouncement({
           type: 'warning',
           message: `Network error loading "${winner.displayTitle}".`,
@@ -286,15 +301,21 @@ export default function App() {
 
   // Start Live Show from Mobile Launch Screen
   const handleStartLive = useCallback(
-    (username: string) => {
-      setIsConnecting(true);
-      setLaunchError(null);
+    (username: string, mode: 'tiktok' | 'offline' = 'tiktok') => {
       setHasStartedLive(true);
-      tiktokLiveService.connect(username);
-      setAnnouncement({
-        type: 'info',
-        message: `Connected to @${username.replace(/^@/, '')}! Waiting for chat song requests...`,
-      });
+      if (mode === 'tiktok') {
+        setIsConnecting(true);
+        tiktokLiveService.connect(username);
+        setAnnouncement({
+          type: 'info',
+          message: `Attempting live connection to @${username.replace(/^@/, '')}...`,
+        });
+      } else {
+        setAnnouncement({
+          type: 'success',
+          message: `DJ Stage Active! Type song requests below to test.`,
+        });
+      }
     },
     []
   );
@@ -369,7 +390,6 @@ export default function App() {
           key="mobile-launchpad"
           onStart={handleStartLive}
           isLoading={isConnecting}
-          errorMessage={launchError}
         />
       ) : (
         /* Screen 2: Mobile Portrait 9:16 Broadcast Stage (When Live) */
@@ -386,6 +406,7 @@ export default function App() {
           onToggleMute={() => setIsMuted((prev) => !prev)}
           onSkipTrack={handleSkipRound}
           onOpenDrawer={() => setIsDJDrawerOpen(true)}
+          onInjectComment={handleInjectComment}
         />
       )}
 

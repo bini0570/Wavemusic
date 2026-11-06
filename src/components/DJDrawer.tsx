@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { TikTokComment, VotingRoundState } from '../types';
+import { soundEffects } from '../services/soundEffectsService';
 
 interface DJDrawerProps {
   isOpen: boolean;
@@ -209,6 +210,29 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
                 onChange={(e) => onChangeVolume(parseFloat(e.target.value))}
                 className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
               />
+            </div>
+
+            {/* Sound FX Audio Test */}
+            <div className="pt-2 border-t border-white/5 space-y-1.5">
+              <span className="text-[11px] font-bold text-slate-400 block">
+                DJ Sound FX Audio Test:
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => soundEffects.playTick(1)}
+                  className="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-slate-300 transition active:scale-95"
+                >
+                  ⏱ 1s Tick Cue
+                </button>
+                <button
+                  type="button"
+                  onClick={() => soundEffects.playWinnerFanfare()}
+                  className="py-1.5 px-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-[11px] font-bold text-amber-300 transition active:scale-95"
+                >
+                  🎉 Winner Fanfare
+                </button>
+              </div>
             </div>
           </div>
 

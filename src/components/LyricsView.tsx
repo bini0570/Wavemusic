@@ -12,6 +12,7 @@ interface LyricsViewProps {
   isSynced?: boolean;
   isReal?: boolean;
   sourceName?: string;
+  hideHeader?: boolean;
   onSeek: (time: number) => void;
   className?: string;
 }
@@ -25,6 +26,7 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
   isSynced = true,
   isReal = true,
   sourceName = 'LRC Sync',
+  hideHeader = false,
   onSeek,
   className = '',
 }) => {
@@ -67,39 +69,41 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
-      {/* Lightweight compact top header */}
-      <div className="flex items-center justify-between gap-3 px-2 py-2 border-b border-white/5 shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-900">
-            {currentTrack.artworkUrl ? (
-              <img
-                src={currentTrack.artworkUrl}
-                alt={currentTrack.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-purple-300">
-                <Music className="h-4 w-4" />
-              </div>
-            )}
+      {/* Lightweight compact top header (hidden if hideHeader is true) */}
+      {!hideHeader && (
+        <div className="flex items-center justify-between gap-3 px-2 py-2 border-b border-white/5 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-slate-900">
+              {currentTrack.artworkUrl ? (
+                <img
+                  src={currentTrack.artworkUrl}
+                  alt={currentTrack.title}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-purple-300">
+                  <Music className="h-4 w-4" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <h4 className="truncate text-xs font-bold text-white leading-tight">
+                {currentTrack.title}
+              </h4>
+              <p className="truncate text-[11px] text-slate-400">{currentTrack.artist}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h4 className="truncate text-xs font-bold text-white leading-tight">
-              {currentTrack.title}
-            </h4>
-            <p className="truncate text-[11px] text-slate-400">{currentTrack.artist}</p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-            Audio: Studio
-          </span>
-          <span className="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
-            Lyrics: {sourceName}
-          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+              Audio: Studio
+            </span>
+            <span className="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+              Lyrics: {sourceName}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Loading state */}
       {isLoading ? (

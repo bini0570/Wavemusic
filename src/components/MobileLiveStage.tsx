@@ -15,8 +15,8 @@ import {
   Trophy,
   Users,
   MessageCircle,
-  Flame,
   Sparkles,
+  Send,
 } from 'lucide-react';
 
 interface MobileLiveStageProps {
@@ -31,6 +31,7 @@ interface MobileLiveStageProps {
   onToggleMute: () => void;
   onSkipTrack: () => void;
   onOpenDrawer: () => void;
+  onInjectComment: (text: string) => void;
 }
 
 export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
@@ -45,7 +46,10 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
   onToggleMute,
   onSkipTrack,
   onOpenDrawer,
+  onInjectComment,
 }) => {
+  const [quickInput, setQuickInput] = React.useState('');
+
   const {
     roundNumber,
     timeRemainingSeconds,
@@ -69,6 +73,13 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
   const top3 = leaderboard.slice(0, 3);
   const maxVotes = top3.length > 0 ? top3[0].voteCount : 1;
 
+  const handleQuickSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickInput.trim()) return;
+    onInjectComment(quickInput.trim());
+    setQuickInput('');
+  };
+
   return (
     <div className="flex flex-col h-screen w-full bg-[#0c0a1a] text-white select-none overflow-hidden relative">
       {/* Background Ambient Glows */}
@@ -78,7 +89,7 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
       {/* ============================================================= */}
       {/* 1. TOP MOBILE HEADER BAR                                       */}
       {/* ============================================================= */}
-      <header className="flex items-center justify-between px-4 py-2.5 bg-[#120e29]/90 border-b border-purple-900/30 backdrop-blur-md shrink-0 z-20">
+      <header className="flex items-center justify-between px-4 py-2.5 bg-[#120e29]/95 border-b border-purple-900/30 backdrop-blur-md shrink-0 z-20">
         <div className="flex items-center gap-2 min-w-0">
           <div className="flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 shadow-md shrink-0">
             <Radio className="h-4 w-4 text-white animate-pulse" />
@@ -86,31 +97,31 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-black tracking-wide text-white">WAVE</span>
-              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase">
                 60s DJ
               </span>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-slate-400">
+            <div className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  isConnected ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-amber-400 animate-ping'
+                className={`h-2 w-2 rounded-full ${
+                  isConnected ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400'
                 }`}
               />
-              <span className="font-bold text-slate-300 truncate">
-                {isConnected ? channelName : 'Connecting...'}
+              <span className="font-bold text-slate-200 truncate">
+                {isConnected ? `${channelName} LIVE` : 'DJ Stage Mode'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Round Badge & Settings */}
+        {/* Round Badge & Settings Button */}
         <div className="flex items-center gap-2">
           <div className="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-black text-amber-400">
             R#{roundNumber}
           </div>
           <button
             onClick={onOpenDrawer}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 transition"
             title="DJ Controls"
           >
             <Sliders className="h-4 w-4" />
@@ -121,34 +132,47 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
       {/* ============================================================= */}
       {/* 2. MAIN SCROLLABLE/FLEX CONTENT (VERTICAL 9:16 OPTIMIZED)      */}
       {/* ============================================================= */}
-      <div className="flex-1 flex flex-col p-3.5 gap-3 min-h-0 overflow-y-auto z-10">
+      <div className="flex-1 flex flex-col p-3.5 gap-2.5 min-h-0 overflow-y-auto z-10">
         {/* HERO NOW PLAYING CARD */}
-        <div className="rounded-2xl p-4 bg-gradient-to-br from-[#1b153b]/95 via-[#14102c]/95 to-[#0e0b1f]/98 border border-purple-500/20 shadow-xl shrink-0">
-          {isWaitingForVotes ? (
-            <div className="py-6 px-3 flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
+        <div className="rounded-2xl p-3.5 bg-gradient-to-br from-[#1b153b]/95 via-[#14102c]/95 to-[#0e0b1f]/98 border border-purple-500/20 shadow-xl shrink-0">
+          {isWaitingForVotes || !currentTrack ? (
+            <div className="py-5 px-3 flex flex-col items-center justify-center text-center animate-in fade-in duration-300">
               <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(251,191,36,0.2)]">
                 <MessageCircle className="h-6 w-6 animate-bounce" />
               </div>
-              <h2 className="text-base font-black text-white mb-1">Waiting For Song Votes</h2>
-              <p className="text-xs text-slate-300 font-medium max-w-xs">
-                Comment a song title in TikTok chat to play the next 60s track!
+              <h2 className="text-base font-black text-white mb-0.5">Waiting For Song Votes</h2>
+              <p className="text-xs text-slate-300 font-medium max-w-xs mb-2.5">
+                Comment an <strong className="text-amber-400">Artist &amp; Song Title</strong> in chat
+                or tap any suggestion below to start!
               </p>
+              <div className="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
+                {['Teddy Afro - Gonder', 'Mulatu Astatke - Yekermo Sew', 'The Weeknd - Blinding Lights'].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => onInjectComment(item)}
+                    className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-purple-200 hover:text-white transition active:scale-95"
+                  >
+                    + {item}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-3">
                 {/* Artwork */}
                 <div
-                  className={`relative w-16 h-16 rounded-xl overflow-hidden shadow-lg border border-white/10 shrink-0 transition-transform ${
+                  className={`relative w-14 h-14 rounded-xl overflow-hidden shadow-lg border border-white/10 shrink-0 transition-transform ${
                     isPlaying ? 'scale-105 shadow-purple-500/30' : ''
                   }`}
                 >
                   <img
                     src={
-                      currentTrack?.artworkUrl ||
+                      currentTrack.artworkUrl ||
                       'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200&h=200&fit=crop'
                     }
-                    alt={currentTrack?.title || 'Track Art'}
+                    alt={currentTrack.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -156,25 +180,25 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
                 {/* Metadata */}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
                       PLAYING · 60s
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-white truncate leading-tight">
-                    {currentTrack?.title || 'Select a Song'}
+                  <h3 className="text-sm font-black text-white truncate leading-tight">
+                    {currentTrack.title}
                   </h3>
                   <p className="text-xs font-bold text-slate-400 truncate">
-                    {currentTrack?.artist || 'WAVE Live'}
+                    {currentTrack.artist}
                   </p>
                   <div className="mt-1">
-                    <WaveformVisualizer isPlaying={isPlaying} barCount={18} className="h-6" />
+                    <WaveformVisualizer isPlaying={isPlaying} barCount={18} className="h-4" />
                   </div>
                 </div>
               </div>
 
               {/* 60s Progress Bar */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px] font-mono font-bold">
+                <div className="flex items-center justify-between text-[10px] font-mono font-bold">
                   <span className="text-purple-300">0:{musicSec.toString().padStart(2, '0')}</span>
                   <span className="text-slate-400">0:60 Max</span>
                 </div>
@@ -190,24 +214,22 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
         </div>
 
         {/* 60-SECOND COUNTDOWN & TOP VOTE RACE */}
-        <div className="rounded-2xl p-3.5 bg-[#14102c]/90 border border-amber-500/20 shadow-xl shrink-0 flex items-center justify-between gap-3">
+        <div className="rounded-2xl p-3 bg-[#14102c]/90 border border-amber-500/20 shadow-lg shrink-0 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1 mb-0.5">
               <Clock className="h-3 w-3 animate-spin" />
               Next Track Countdown
             </span>
-            <p className="text-xs font-extrabold text-white truncate">
-              {top3.length > 0
-                ? `#1: ${top3[0].displayTitle}`
-                : 'Comment song to vote!'}
+            <p className="text-xs font-black text-white truncate">
+              {top3.length > 0 ? `#1: ${top3[0].displayTitle}` : 'Waiting for chat request...'}
             </p>
             <span className="text-[10px] text-slate-400">
-              Plays automatically at 0s
+              {isWaitingForVotes ? 'Timer in standby' : 'Leading song plays at 0s'}
             </span>
           </div>
 
           {/* Digital Timer Ring */}
-          <div className="relative flex items-center justify-center h-14 w-14 shrink-0">
+          <div className="relative flex items-center justify-center h-12 w-12 shrink-0">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
               <circle
                 cx="18"
@@ -221,7 +243,11 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
                 cx="18"
                 cy="18"
                 r="15"
-                className="text-amber-400 stroke-current transition-all duration-1000 ease-linear"
+                className={`stroke-current transition-all duration-1000 ease-linear ${
+                  timeRemainingSeconds <= 10 && !isWaitingForVotes
+                    ? 'text-rose-400 animate-pulse'
+                    : 'text-amber-400'
+                }`}
                 strokeWidth="3.2"
                 strokeDasharray="94.2"
                 strokeDashoffset={94.2 - (countdownPercent / 100) * 94.2}
@@ -230,28 +256,34 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
               />
             </svg>
             <div className="absolute flex flex-col items-center justify-center font-mono leading-none">
-              <span className="text-base font-black text-white">{timeRemainingSeconds}s</span>
+              <span
+                className={`text-sm font-black ${
+                  timeRemainingSeconds <= 10 && !isWaitingForVotes
+                    ? 'text-rose-400 animate-pulse'
+                    : 'text-white'
+                }`}
+              >
+                {timeRemainingSeconds}s
+              </span>
             </div>
           </div>
         </div>
 
         {/* TOP 3 VOTE RACE LIST */}
-        <div className="rounded-2xl p-3 bg-[#120e29]/70 border border-white/5 backdrop-blur-md shrink-0 space-y-2">
-          <div className="flex items-center justify-between pb-1.5 border-b border-white/5">
+        <div className="rounded-2xl p-3 bg-[#120e29]/70 border border-white/5 backdrop-blur-md shrink-0 space-y-1.5">
+          <div className="flex items-center justify-between pb-1 border-b border-white/5">
             <div className="flex items-center gap-1.5">
               <Trophy className="h-3.5 w-3.5 text-amber-400" />
               <span className="text-xs font-black text-white tracking-wide">
-                Chat Vote Leaderboard
+                Live Chat Vote Race
               </span>
             </div>
-            <span className="text-[10px] font-mono text-purple-300">
-              1 vote per viewer
-            </span>
+            <span className="text-[10px] font-mono text-purple-300">1 vote/viewer</span>
           </div>
 
           {top3.length === 0 ? (
-            <p className="text-xs text-slate-500 text-center py-3 font-medium">
-              No votes yet. Tell chat: &ldquo;Comment a song name!&rdquo;
+            <p className="text-xs text-slate-500 text-center py-2 font-medium">
+              No votes in this round yet. Type a song below to start!
             </p>
           ) : (
             top3.map((song, idx) => {
@@ -261,16 +293,16 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
               return (
                 <div
                   key={song.groupKey}
-                  className={`p-2.5 rounded-xl border transition-all ${
+                  className={`p-2 rounded-xl border transition-all ${
                     isLeader
                       ? 'bg-amber-500/10 border-amber-500/30'
                       : 'bg-white/[0.02] border-white/5'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <span
-                        className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-black shrink-0 ${
+                        className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black shrink-0 ${
                           isLeader ? 'bg-amber-400 text-black' : 'bg-white/10 text-white'
                         }`}
                       >
@@ -279,12 +311,10 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
                       <span className="text-xs font-black text-white truncate">
                         {song.displayTitle}
                       </span>
-                      <span className="text-[10px] text-slate-400 truncate">
-                        · {song.artist}
-                      </span>
+                      <span className="text-[10px] text-slate-400 truncate">· {song.artist}</span>
                     </div>
 
-                    <span className="text-[11px] font-black font-mono text-amber-400 shrink-0">
+                    <span className="text-xs font-black font-mono text-amber-400 shrink-0">
                       {song.voteCount} {song.voteCount === 1 ? 'vote' : 'votes'}
                     </span>
                   </div>
@@ -304,8 +334,8 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
         </div>
 
         {/* SYNCHRONIZED KARAOKE LYRICS */}
-        <div className="flex-1 rounded-2xl bg-[#120e29]/70 border border-white/5 p-3 min-h-[140px] flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between pb-1.5 border-b border-white/5 mb-1 shrink-0">
+        <div className="flex-1 rounded-2xl bg-[#120e29]/70 border border-white/5 p-3 min-h-[120px] flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between pb-1 border-b border-white/5 mb-1 shrink-0">
             <span className="text-[10px] font-black uppercase tracking-wider text-purple-300">
               Synchronized Lyrics
             </span>
@@ -320,6 +350,7 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
               isPlaying={isPlaying}
               isLoading={isLyricsLoading}
               isSynced={true}
+              hideHeader={true}
               onSeek={() => {}}
               className="h-full"
             />
@@ -328,9 +359,31 @@ export const MobileLiveStage: React.FC<MobileLiveStageProps> = ({
       </div>
 
       {/* ============================================================= */}
-      {/* 3. BOTTOM THUMB-FRIENDLY HOST TOOLBAR                          */}
+      {/* 3. QUICK CHAT VOTE INPUT BAR (Host & Chat Test)               */}
       {/* ============================================================= */}
-      <footer className="px-4 py-2.5 bg-[#120e29]/95 border-t border-white/10 flex items-center justify-between gap-3 shrink-0 z-20">
+      <div className="px-3.5 py-1.5 bg-[#0e0b1f] border-t border-purple-900/20 shrink-0 z-20">
+        <form onSubmit={handleQuickSubmit} className="flex gap-2">
+          <input
+            type="text"
+            value={quickInput}
+            onChange={(e) => setQuickInput(e.target.value)}
+            placeholder="Type song request (e.g. Teddy Afro - Gonder)"
+            className="flex-1 bg-black/40 border border-purple-500/30 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400 transition"
+          />
+          <button
+            type="submit"
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-xs text-white flex items-center gap-1 shadow-md"
+          >
+            <Send className="h-3 w-3" />
+            <span>Vote</span>
+          </button>
+        </form>
+      </div>
+
+      {/* ============================================================= */}
+      {/* 4. BOTTOM THUMB-FRIENDLY HOST TOOLBAR                          */}
+      {/* ============================================================= */}
+      <footer className="px-4 py-2 bg-[#120e29]/95 border-t border-white/10 flex items-center justify-between gap-3 shrink-0 z-20">
         <button
           onClick={onTogglePlay}
           className="flex-1 py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold text-xs text-white flex items-center justify-center gap-1.5 transition active:scale-95"

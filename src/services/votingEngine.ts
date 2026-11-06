@@ -162,10 +162,18 @@ export class VotingEngine {
           });
         }
 
-        // If we were waiting for votes, kick off the 60s countdown now!
+        // If we were waiting for votes (idle silence), immediately play this first requested song
+        // and start the 60s voting round for the NEXT song so the stream never sits in silence!
         if (this.isWaitingForVotes) {
           this.isWaitingForVotes = false;
           this.timeRemaining = this.roundDuration;
+          const initialWinner = this.votesByGroup.get(recognized.groupKey)!;
+          // Clear current round votes so chat can immediately begin voting on track #2
+          this.votesByGroup.clear();
+          this.votedByUser.clear();
+          if (this.onWinnerSelected) {
+            this.onWinnerSelected(initialWinner, this.roundNumber);
+          }
         }
       }
     }
