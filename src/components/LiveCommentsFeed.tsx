@@ -32,15 +32,12 @@ export const LiveCommentsFeed: React.FC<LiveCommentsFeedProps> = ({
   return (
     <section className="flex flex-col h-full rounded-2xl border border-white/10 bg-[#141422]/90 backdrop-blur-md overflow-hidden shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 bg-white/[0.02]">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-pink-400" />
-          <h2 className="text-sm font-bold text-white tracking-wide">
-            A. Live Comments
+          <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide">
+            Live Chat
           </h2>
-          <span className="text-[11px] font-mono text-slate-400">
-            ({comments.length} stream log)
-          </span>
         </div>
 
         <button
@@ -52,22 +49,19 @@ export const LiveCommentsFeed: React.FC<LiveCommentsFeedProps> = ({
           }`}
           title="Toggle auto-scroll"
         >
-          {autoScroll ? 'Auto-Scroll ON' : 'Paused'}
+          {autoScroll ? 'Auto' : 'Paused'}
         </button>
       </div>
 
       {/* Real-time Streaming Comments List */}
       <div
         ref={scrollRef}
-        className="flex-1 p-3 overflow-y-auto space-y-2.5 min-h-[260px] max-h-[380px] sm:max-h-[460px] divide-y divide-white/[0.03]"
+        className="flex-1 p-3 overflow-y-auto space-y-2.5 min-h-[200px] max-h-[380px] sm:max-h-[460px] divide-y divide-white/[0.03]"
       >
         {comments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full py-12 text-center text-slate-500">
-            <MessageSquare className="h-8 w-8 text-slate-600 mb-2" />
-            <p className="text-xs">Waiting for live viewer comments...</p>
-            <p className="text-[11px] text-slate-600 mt-1">
-              Type a song request below to test the voting engine
-            </p>
+          <div className="flex flex-col items-center justify-center h-full py-10 text-center text-slate-500">
+            <MessageSquare className="h-6 w-6 text-slate-600 mb-1.5" />
+            <p className="text-xs">No comments yet</p>
           </div>
         ) : (
           comments.map((item) => (
@@ -108,12 +102,12 @@ export const LiveCommentsFeed: React.FC<LiveCommentsFeedProps> = ({
                     <div className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-500/20 border border-purple-500/35 text-[11px] text-purple-200 font-semibold shadow-sm">
                       <Music2 className="h-3 w-3 text-purple-400 shrink-0" />
                       <span className="truncate">
-                        Vote detected: {item.recognizedSong.displayTitle}
+                        {item.recognizedSong.displayTitle}
                         {item.recognizedSong.artist !== 'Viewer Request' &&
                           ` (${item.recognizedSong.artist})`}
                       </span>
                       <span className="text-[10px] text-emerald-400 font-bold shrink-0">
-                        +1 Vote
+                        +1
                       </span>
                     </div>
                   )}
@@ -144,7 +138,7 @@ export const LiveCommentsFeed: React.FC<LiveCommentsFeedProps> = ({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Send comment (e.g. 'play Teddy Afro Gonder')"
+          placeholder="Type a message or song..."
           className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
         />
 

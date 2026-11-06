@@ -122,14 +122,9 @@ export const TikTokConnectModal: React.FC<TikTokConnectModalProps> = ({
           </div>
 
           {/* Quick Notice */}
-          <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-200 space-y-1">
-            <p className="font-bold flex items-center gap-1 text-purple-300">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              Live Stream Requirement:
-            </p>
-            <p className="text-slate-300">
-              Your TikTok account must be <strong>actively streaming live</strong> to connect. If not streaming yet, you can still search songs and test requests manually!
-            </p>
+          <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-[11px] text-slate-300 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+            <span>Account must be actively streaming LIVE on TikTok to sync chat.</span>
           </div>
 
           {/* Action Buttons */}

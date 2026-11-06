@@ -19,24 +19,14 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-30 border-b border-purple-900/30 bg-[#0e0b1f]/95 backdrop-blur-md px-3 sm:px-6 py-2.5 shrink-0 shadow-lg">
       <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto">
-        {/* Left: Webapp Banner & Branding */}
+        {/* Left: Webapp Banner */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 shadow-md shadow-purple-950/60 shrink-0">
-            <Music2 className="h-5 w-5 text-white" />
+          <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 shadow-md shrink-0">
+            <Music2 className="h-4.5 w-4.5 text-white" />
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-purple-200 via-pink-200 to-amber-200 bg-clip-text text-transparent">
-                WAVE
-              </h1>
-              <span className="hidden sm:inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Live Music Voting
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 font-semibold truncate hidden sm:block">
-              Music discovery · 60s chat community voting
-            </p>
-          </div>
+          <h1 className="text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-purple-200 via-pink-200 to-amber-200 bg-clip-text text-transparent">
+            WAVE
+          </h1>
         </div>
 
         {/* Right: TikTok Online/Offline Status & Connect Button */}

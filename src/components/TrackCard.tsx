@@ -75,14 +75,9 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         >
           {track.title}
         </h3>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <p className="truncate text-xs text-slate-400">
-            {track.artist}
-          </p>
-          <span className="shrink-0 text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/25">
-            ሙሉ ዘፈን
-          </span>
-        </div>
+        <p className="truncate text-xs text-slate-400 mt-0.5">
+          {track.artist}
+        </p>
       </div>
 
       {/* Actions (Heart + Play) */}

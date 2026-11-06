@@ -472,16 +472,11 @@ export default function App() {
           <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold uppercase tracking-wider text-[10px]">
             Round #{votingState.roundNumber}
           </span>
-          <span className="text-slate-400 font-medium hidden sm:inline">
-            {votingState.isWaitingForVotes ? 'Standby: comment song to start' : '60s voting round in progress'}
-          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14102c] border border-amber-500/30 text-amber-300 font-mono font-bold shadow-sm">
-            <Clock className="h-3.5 w-3.5 animate-spin" />
-            <span>{votingState.timeRemainingSeconds}s remaining</span>
-          </div>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14102c] border border-amber-500/30 text-amber-300 font-mono font-bold shadow-sm">
+          <Clock className="h-3.5 w-3.5 animate-spin" />
+          <span>{votingState.timeRemainingSeconds}s</span>
         </div>
       </div>
 
@@ -498,7 +493,7 @@ export default function App() {
           }`}
         >
           <Trophy className="h-3.5 w-3.5" />
-          <span>1. Comments &amp; Votes</span>
+          <span>Rankings &amp; Chat</span>
         </button>
 
         <button
@@ -510,7 +505,7 @@ export default function App() {
           }`}
         >
           <Music className="h-3.5 w-3.5" />
-          <span>2. Player &amp; Search</span>
+          <span>Player &amp; Search</span>
         </button>
       </div>
 
@@ -539,7 +534,7 @@ export default function App() {
                 }`}
               >
                 <Trophy className="h-3.5 w-3.5" />
-                <span>Top 10 Rankings</span>
+                <span>Rankings</span>
               </button>
 
               <button
@@ -551,13 +546,9 @@ export default function App() {
                 }`}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
-                <span>Vote Comments Log ({streamComments.length})</span>
+                <span>Chat ({streamComments.length})</span>
               </button>
             </div>
-
-            <span className="text-[10px] font-mono text-purple-300 hidden sm:inline">
-              1 vote/viewer
-            </span>
           </div>
 
           {/* Tab Content 1: Top 10 Ranking Table */}
@@ -625,7 +616,7 @@ export default function App() {
                   }`}
                 >
                   <Search className="h-3.5 w-3.5" />
-                  <span>Search Results ({searchResults.length})</span>
+                  <span>Results ({searchResults.length})</span>
                 </button>
 
                 <button
@@ -637,13 +628,15 @@ export default function App() {
                   }`}
                 >
                   <Mic2 className="h-3.5 w-3.5" />
-                  <span>Karaoke Lyrics</span>
+                  <span>Lyrics</span>
                 </button>
               </div>
 
-              <span className="text-[10px] font-mono text-slate-400">
-                {currentTrack ? currentTrack.title : 'No Track Selected'}
-              </span>
+              {currentTrack && (
+                <span className="text-[10px] font-mono text-slate-400 truncate max-w-[140px]">
+                  {currentTrack.title}
+                </span>
+              )}
             </div>
 
             {/* Right Tab Content 1: Search Results List */}
@@ -652,8 +645,7 @@ export default function App() {
                 {searchResults.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full py-10 text-center text-slate-500">
                     <Music className="h-8 w-8 text-slate-600 mb-2" />
-                    <p className="text-xs">No search results yet.</p>
-                    <p className="text-[11px] text-slate-500 mt-1">Use the search bar above to look up songs.</p>
+                    <p className="text-xs">No songs found</p>
                   </div>
                 ) : (
                   searchResults.map((t) => (

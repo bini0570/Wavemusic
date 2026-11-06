@@ -161,7 +161,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 setIsOpen(false);
               }
             }}
-            placeholder="Search song, artist (auto-filled with #1 viewer vote)..."
+            placeholder="Search song or artist..."
             className="w-full rounded-xl border border-white/10 bg-[#161624] py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 shadow-inner outline-none transition focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 font-medium"
           />
 
@@ -195,25 +195,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         </button>
       </form>
 
-      {/* Auto-written Live Winner Notification Banner */}
-      {autoLeadingQuery && !isUserEditing && (
-        <div className="mt-1.5 flex items-center justify-between text-[11px] text-amber-300 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-          <span className="truncate">
-            ★ Live #1 Vote Lead: <strong className="text-white">{autoLeadingQuery}</strong> ({autoLeadingVotes} {autoLeadingVotes === 1 ? 'vote' : 'votes'})
-          </span>
-          <span className="shrink-0 text-[10px] font-mono text-amber-400 font-bold ml-2">
-            Auto-Plays at {timeRemaining ?? 0}s
-          </span>
-        </div>
-      )}
-
       {/* Recent Search Queries Overlay from localStorage */}
       {isOpen && recentSearches.length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-1.5 z-30 rounded-2xl border border-white/10 bg-[#141422] p-2.5 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="flex items-center justify-between px-2 pb-2 border-b border-white/5">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
               <Clock className="h-3.5 w-3.5 text-purple-400" />
-              <span>የቅርብ ፍለጋዎች (Recent Searches)</span>
+              <span>Recent Searches</span>
             </div>
             <button
               type="button"

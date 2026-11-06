@@ -69,13 +69,13 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
 
   return (
     <div className="flex flex-col h-full rounded-2xl sm:rounded-3xl border border-[#2b2454] bg-[#120f26]/95 backdrop-blur-xl p-2.5 sm:p-3.5 shadow-2xl justify-between overflow-hidden">
-      {/* Header: Headphones + MUSIC PLAYER */}
+      {/* Header: Headphones + Now Playing */}
       <div className="flex items-center gap-2 mb-1 sm:mb-2 shrink-0">
-        <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
-          <Headphones className="h-4 w-4 sm:h-5 sm:w-5 text-purple-400" />
+        <div className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
+          <Headphones className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
         </div>
-        <h2 className="text-sm sm:text-base font-extrabold tracking-wide text-white uppercase">
-          MUSIC PLAYER
+        <h2 className="text-xs sm:text-sm font-bold tracking-wide text-white">
+          Now Playing
         </h2>
       </div>
 
@@ -202,12 +202,6 @@ export const MusicPlayerSection: React.FC<MusicPlayerSectionProps> = ({
         >
           <Repeat className="h-4 w-4" />
         </button>
-      </div>
-
-      {/* Bottom Status Pill: Green dot + Now Playing */}
-      <div className="flex items-center justify-center gap-2 py-1.5 sm:py-2 px-3 rounded-full bg-[#1b153b] border border-[#3b2d6a] text-[11px] sm:text-xs font-bold text-[#00e676] shadow-sm shrink-0">
-        <span className="h-2 w-2 rounded-full bg-[#00e676] animate-pulse shadow-[0_0_8px_#00e676]" />
-        <span>Now Playing</span>
       </div>
     </div>
   );

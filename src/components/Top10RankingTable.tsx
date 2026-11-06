@@ -24,19 +24,14 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
 
   return (
     <div className="flex flex-col h-full rounded-2xl sm:rounded-3xl border border-[#2b2454] bg-[#120f26]/95 backdrop-blur-xl p-2.5 sm:p-3.5 shadow-2xl justify-between overflow-hidden">
-      {/* Header: Trophy + TOP COMMENTS RACE */}
-      <div className="flex items-center justify-between mb-1 sm:mb-2 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
-          </div>
-          <h2 className="text-xs sm:text-sm font-extrabold tracking-wide text-white uppercase">
-            LIVE VOTE RANKINGS
-          </h2>
+      {/* Header: Trophy + Rankings */}
+      <div className="flex items-center gap-2 mb-1 sm:mb-2 shrink-0">
+        <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
+          <Trophy className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
         </div>
-        <span className="text-[10px] font-mono text-purple-300">
-          {top10.length} {top10.length === 1 ? 'song' : 'songs'} in race
-        </span>
+        <h2 className="text-xs sm:text-sm font-bold tracking-wide text-white">
+          Rankings
+        </h2>
       </div>
 
       {/* Rows List (Clean, scrollable on mobile) */}
@@ -49,16 +44,13 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
             return (
               <div
                 key={`empty_${rank}`}
-                className="flex items-center justify-between px-2.5 py-0.5 rounded-lg border border-dashed border-white/5 bg-black/20 opacity-30 text-[11px] text-slate-500"
+                className="flex items-center justify-between px-2.5 py-1 rounded-lg border border-dashed border-white/5 bg-black/20 opacity-30 text-[11px] text-slate-500"
               >
                 <div className="flex items-center gap-2">
                   <span className="w-4 text-center font-bold text-slate-500">{rank}</span>
-                  <span className="font-mono text-slate-500">#{rank}</span>
-                  <span className="italic">Waiting for live vote...</span>
+                  <span>No votes yet</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-slate-600">
-                  —
-                </span>
+                <span className="text-[10px] text-slate-600">—</span>
               </div>
             );
           }
@@ -161,11 +153,7 @@ export const Top10RankingTable: React.FC<Top10RankingTableProps> = ({
               className="flex items-center justify-between px-2 sm:px-2.5 py-0.5 rounded-lg border border-transparent hover:border-white/5 hover:bg-[#181332] transition cursor-pointer"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className="w-4 text-center text-xs font-bold text-slate-400 shrink-0">
-                  {rank}
-                </span>
-
-                <span className="text-[11px] font-bold text-slate-500 font-mono shrink-0">
+                <span className="w-5 text-center text-xs font-bold text-slate-400 font-mono shrink-0">
                   #{rank}
                 </span>
 

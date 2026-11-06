@@ -100,13 +100,11 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
-          {/* ========================================================= */}
-          {/* 1. TIKTOK LIVE CONNECTION                                 */}
-          {/* ========================================================= */}
+          {/* TikTok Connection */}
           <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-purple-300">
-                TikTok LIVE Stream
+                TikTok LIVE
               </span>
               <span
                 className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1.5 ${
@@ -158,12 +156,10 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
             </form>
           </div>
 
-          {/* ========================================================= */}
-          {/* 2. PLAYBACK & ROUND CONTROLS                              */}
-          {/* ========================================================= */}
+          {/* Playback Controls */}
           <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3">
             <span className="text-xs font-black uppercase tracking-wider text-purple-300">
-              Playback & Round Actions
+              Playback
             </span>
 
             <div className="grid grid-cols-2 gap-2">
@@ -180,7 +176,7 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 font-bold text-xs text-amber-300 transition"
               >
                 <SkipForward className="h-4 w-4" />
-                <span>Next Winner</span>
+                <span>Skip</span>
               </button>
 
               <button
@@ -188,7 +184,7 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
                 className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-bold text-xs text-slate-300 transition col-span-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                <span>Reset 60s Timer</span>
+                <span>Reset Round</span>
               </button>
             </div>
 
@@ -197,7 +193,7 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
               <div className="flex items-center justify-between text-xs text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <Volume2 className="h-3.5 w-3.5" />
-                  Master Volume
+                  Volume
                 </span>
                 <span className="font-mono">{Math.round(volume * 100)}%</span>
               </div>
@@ -212,10 +208,10 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
               />
             </div>
 
-            {/* Sound FX Audio Test */}
+            {/* Sound FX */}
             <div className="pt-2 border-t border-white/5 space-y-1.5">
               <span className="text-[11px] font-bold text-slate-400 block">
-                DJ Sound FX Audio Test:
+                Sound FX:
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -223,7 +219,7 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
                   onClick={() => soundEffects.playTick(1)}
                   className="py-1.5 px-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-slate-300 transition active:scale-95"
                 >
-                  ⏱ 1s Tick Cue
+                  ⏱ Tick Cue
                 </button>
                 <button
                   type="button"
@@ -236,23 +232,18 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
             </div>
           </div>
 
-          {/* ========================================================= */}
-          {/* 3. TEST / MANUAL COMMENT INPUT                            */}
-          {/* ========================================================= */}
+          {/* Test / Manual Comment Input */}
           <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3">
             <span className="text-xs font-black uppercase tracking-wider text-purple-300">
-              Host Manual Song Request
+              Test Request
             </span>
-            <p className="text-[11px] text-slate-400">
-              Inject a song into the race as host to kick off or test the round.
-            </p>
 
             <form onSubmit={handleCommentSubmit} className="space-y-2">
               <input
                 type="text"
                 value={manualComment}
                 onChange={(e) => setManualComment(e.target.value)}
-                placeholder="e.g. play mulatu tezeta or blinding lights"
+                placeholder="e.g. Teddy Afro Gonder or Blinding Lights"
                 className="w-full rounded-xl bg-black/40 border border-purple-500/30 px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-purple-400"
               />
               <button
@@ -265,16 +256,14 @@ export const DJDrawer: React.FC<DJDrawerProps> = ({
             </form>
           </div>
 
-          {/* ========================================================= */}
-          {/* 4. RECENT LIVE COMMENTS FEED                              */}
-          {/* ========================================================= */}
+          {/* Live Chat Stream */}
           <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-purple-300">
-                Live Chat Stream
+                Chat
               </span>
               <span className="text-[10px] font-mono text-slate-400">
-                {recentComments.length} comments
+                {recentComments.length}
               </span>
             </div>
 
