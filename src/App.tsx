@@ -484,15 +484,15 @@ export default function App() {
       </div>
 
       {/* ============================================================= */}
-      {/* 3. SPLIT SCREEN BY 2 (Grid 2 Columns on Desktop, Stacked Mobile) */}
+      {/* 3. STRICT 50% LEFT / 50% RIGHT SPLIT WORKSPACE                */}
       {/* ============================================================= */}
-      <main className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0 px-3 sm:px-6 pb-4 max-w-7xl w-full mx-auto overflow-hidden">
+      <main className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0 px-3 sm:px-6 pb-4 max-w-7xl w-full mx-auto overflow-hidden">
         
         {/* =========================================================== */}
-        {/* LEFT COLUMN: VOTE COMMENTS & TOP LEADERBOARD                */}
+        {/* LEFT COLUMN (50%): COMMENTS & RANKINGS                      */}
         {/* =========================================================== */}
         <section className="flex flex-col h-full min-h-[460px] bg-[#120f29]/90 border border-purple-900/30 rounded-3xl p-3 sm:p-4 shadow-xl backdrop-blur-md overflow-hidden">
-          {/* Left Column Tabs Header */}
+          {/* Left Column Tabs Header: Comments & Rankings */}
           <div className="flex items-center justify-between pb-3 border-b border-white/5 shrink-0 mb-3">
             <div className="flex gap-2">
               <button
@@ -516,7 +516,7 @@ export default function App() {
                 }`}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
-                <span>Live Chat Log ({streamComments.length})</span>
+                <span>Vote Comments Log ({streamComments.length})</span>
               </button>
             </div>
 
