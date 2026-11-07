@@ -7,10 +7,9 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "tsx server.ts",
-    "start": "vite build && tsx server.ts",
-    "clean": "rimraf dist",
-    "lint": "tsc --noEmit"
+    "server": "node backend/server.js",
+    "start": "node backend/server.js",
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
