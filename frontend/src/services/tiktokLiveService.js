@@ -1,3 +1,5 @@
+import { getWebSocketUrl, apiUrl } from './apiConfig.js';
+
 class TikTokLiveService {
   constructor() {
     this.socket = null;
@@ -14,9 +16,7 @@ class TikTokLiveService {
   initWebSocket() {
     if (typeof window === 'undefined') return;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws`;
+    const wsUrl = getWebSocketUrl();
 
     try {
       this.socket = new WebSocket(wsUrl);
@@ -87,7 +87,7 @@ class TikTokLiveService {
       );
     } else {
       // Fallback to REST endpoint
-      fetch('/api/tiktok/connect', {
+      fetch(apiUrl('/api/tiktok/connect'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channel: cleanChannel, sessionId }),
@@ -102,7 +102,7 @@ class TikTokLiveService {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ action: 'disconnect' }));
     } else {
-      fetch('/api/tiktok/disconnect', { method: 'POST' }).catch(() => {});
+      fetch(apiUrl('/api/tiktok/disconnect'), { method: 'POST' }).catch(() => {});
     }
   }
 

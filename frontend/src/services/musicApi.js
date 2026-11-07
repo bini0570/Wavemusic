@@ -1,3 +1,5 @@
+import { apiUrl } from './apiConfig.js';
+
 function normalizeTrack(item) {
   const rawArt = item.artworkUrl100 || '';
   const highResArt = rawArt.replace('100x100bb', '600x600bb').replace('100x100', '600x600');
@@ -65,11 +67,11 @@ export async function searchTracks(query) {
   const trimmed = query.trim();
   if (!trimmed) return [];
 
-  // Strategy 1: Local Vite proxy `/api/itunes/search`
+  // Strategy 1: Backend proxy `/api/itunes/search`
   try {
-    const proxyUrl = `/api/itunes/search?term=${encodeURIComponent(
+    const proxyUrl = apiUrl(`/api/itunes/search?term=${encodeURIComponent(
       trimmed
-    )}&entity=song&limit=36`;
+    )}&entity=song&limit=36`);
     const res = await fetch(proxyUrl, { headers: { Accept: 'application/json' } });
     if (res.ok) {
       const data = await res.json();

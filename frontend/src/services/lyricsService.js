@@ -1,4 +1,5 @@
 import { TRACK_LYRICS } from '../data/lyrics.js';
+import { apiUrl } from './apiConfig.js';
 
 /**
  * Parses time-stamped LRC content into structured LyricLine array.
@@ -130,7 +131,7 @@ export async function fetchLyrics(
   // Strategy A: LRCLIB Exact Lookup specifying target duration for exact speed matching
   const exactUrls = [
     `https://lrclib.net/api/get?artist_name=${encodeURIComponent(queryArtist)}&track_name=${encodeURIComponent(queryTitle)}&duration=${safeDuration}`,
-    `/api/lrclib/api/get?artist_name=${encodeURIComponent(queryArtist)}&track_name=${encodeURIComponent(queryTitle)}&duration=${safeDuration}`,
+    apiUrl(`/api/lrclib/api/get?artist_name=${encodeURIComponent(queryArtist)}&track_name=${encodeURIComponent(queryTitle)}&duration=${safeDuration}`),
   ];
 
   for (const url of exactUrls) {
@@ -165,7 +166,7 @@ export async function fetchLyrics(
   // Strategy B: LRCLIB Search with Speed & Artist Scoring
   const searchUrls = [
     `https://lrclib.net/api/search?q=${encodeURIComponent(`${queryArtist} ${queryTitle}`)}`,
-    `/api/lrclib/api/search?q=${encodeURIComponent(`${queryArtist} ${queryTitle}`)}`,
+    apiUrl(`/api/lrclib/api/search?q=${encodeURIComponent(`${queryArtist} ${queryTitle}`)}`),
   ];
 
   for (const url of searchUrls) {
@@ -239,7 +240,7 @@ export async function fetchLyrics(
 
   // Strategy C: Verified Musixmatch lyrics for this exact artist, adaptively paced to this track duration
   try {
-    const mxmUrl = `/api/lyrics/musixmatch?artist=${encodeURIComponent(queryArtist)}&title=${encodeURIComponent(queryTitle)}`;
+    const mxmUrl = apiUrl(`/api/lyrics/musixmatch?artist=${encodeURIComponent(queryArtist)}&title=${encodeURIComponent(queryTitle)}`);
     const mxmRes = await fetch(mxmUrl);
     if (mxmRes.ok) {
       const mxmData = await mxmRes.json();
@@ -264,7 +265,7 @@ export async function fetchLyrics(
 
   // Strategy D: Verified Lyrics.ovh for this artist, adaptively paced to this track duration
   try {
-    const ovhUrl = `/api/lyrics/ovh?artist=${encodeURIComponent(queryArtist)}&title=${encodeURIComponent(queryTitle)}`;
+    const ovhUrl = apiUrl(`/api/lyrics/ovh?artist=${encodeURIComponent(queryArtist)}&title=${encodeURIComponent(queryTitle)}`);
     const ovhRes = await fetch(ovhUrl);
     if (ovhRes.ok) {
       const ovhData = await ovhRes.json();

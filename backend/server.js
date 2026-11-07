@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import { createRequire } from 'module';
 import fs from 'fs';
 
@@ -28,7 +29,28 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 
+// Cross-Origin Resource Sharing (Allows Vercel frontend to communicate with Railway backend)
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  })
+);
+
 app.use(express.json());
+
+// Healthcheck endpoint for Railway & monitoring services
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    channel: currentChannel,
+    isTikTokConnected,
+    timestamp: Date.now(),
+  });
+});
 
 let currentTikTokConnection = null;
 let currentChannel = '';
@@ -368,8 +390,32 @@ async function start() {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(indexPath);
     });
+  } else if (process.env.NODE_ENV === 'production') {
+    console.log('[WAVE Server] Standalone backend mode active (Railway/Cloud backend).');
+    app.get('/', (req, res) => {
+      res.json({
+        name: 'WAVE LIVE DJ Backend API & WebSocket Server',
+        status: 'online',
+        runtime: 'Railway Node.js',
+        endpoints: [
+          '/ws',
+          '/health',
+          '/api/tiktok/status',
+          '/api/tiktok/connect',
+          '/api/tiktok/disconnect',
+          '/api/resolve-video',
+          '/api/lyrics/musixmatch',
+          '/api/lyrics/ovh',
+          '/api/itunes/search',
+          '/api/lrclib/api/get',
+        ],
+        connectedChannel: currentChannel || null,
+        isTikTokConnected,
+        timestamp: new Date().toISOString(),
+      });
+    });
   } else {
-    console.log('[WAVE Server] dist/index.html not found, mounting on-the-fly Vite bundler...');
+    console.log('[WAVE Server] dist/index.html not found, mounting on-the-fly Vite bundler for development...');
     try {
       const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({

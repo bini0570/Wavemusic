@@ -1,3 +1,5 @@
+import { apiUrl } from './apiConfig.js';
+
 /**
  * Full Audio Engine with Seamless Crossfade Transition:
  * - Dual-deck architecture (Deck A & Deck B) for seamless DJ-style crossfade between songs.
@@ -344,7 +346,7 @@ class FullAudioEngine {
 
     if (!targetVideoId) {
       try {
-        const res = await fetch(`/api/resolve-video?query=${encodeURIComponent(queryKey)}`);
+        const res = await fetch(apiUrl(`/api/resolve-video?query=${encodeURIComponent(queryKey)}`));
         if (res.ok) {
           const data = await res.json();
           if (data.videoId) {
