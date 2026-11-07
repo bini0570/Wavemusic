@@ -44,7 +44,7 @@ function broadcast(data: object) {
 }
 
 // Connect to TikTok LIVE
-async function connectToTikTok(uniqueId: string): Promise<{ success: boolean; message: string }> {
+async function connectToTikTok(uniqueId: string, sessionId?: string): Promise<{ success: boolean; message: string }> {
   const cleanId = uniqueId.replace(/^@/, '').trim();
   if (!cleanId) {
     return { success: false, message: 'Invalid TikTok username' };
@@ -66,7 +66,7 @@ async function connectToTikTok(uniqueId: string): Promise<{ success: boolean; me
   currentChannel = `@${cleanId}`;
 
   try {
-    const connection = new WebcastPushConnection(cleanId, {
+    const connOptions: any = {
       processInitialData: false,
       enableExtendedGiftInfo: false,
       enableWebsocketUpgrade: true,
@@ -75,7 +75,13 @@ async function connectToTikTok(uniqueId: string): Promise<{ success: boolean; me
         app_language: 'en-US',
         device_platform: 'web',
       },
-    });
+    };
+
+    if (sessionId && sessionId.trim()) {
+      connOptions.sessionId = sessionId.trim();
+    }
+
+    const connection = new WebcastPushConnection(cleanId, connOptions);
 
     connection.on('connected', (state: any) => {
       console.log(`[TikTok LIVE] Connected to @${cleanId} (Room ID: ${state.roomId})`);
@@ -131,9 +137,13 @@ async function connectToTikTok(uniqueId: string): Promise<{ success: boolean; me
 
     connection.on('error', (err: any) => {
       console.warn(`[TikTok LIVE] Connection error for @${cleanId}:`, err?.message || err);
+      let friendlyMsg = err?.message || 'Error communicating with TikTok LIVE';
+      if (friendlyMsg.includes('LIVE_NOT_FOUND') || friendlyMsg.includes('offline') || friendlyMsg.includes('not found')) {
+        friendlyMsg = `@${cleanId} is currently not broadcasting LIVE on TikTok. Start your stream first!`;
+      }
       broadcast({
         type: 'tiktok_error',
-        message: err?.message || 'Error communicating with TikTok LIVE',
+        message: friendlyMsg,
       });
     });
 
@@ -144,7 +154,11 @@ async function connectToTikTok(uniqueId: string): Promise<{ success: boolean; me
     console.error(`[TikTok LIVE] Failed to connect to @${cleanId}:`, err?.message || err);
     isTikTokConnected = false;
     currentTikTokConnection = null;
-    return { success: false, message: err?.message || 'Failed to connect to TikTok LIVE' };
+    let friendlyMsg = err?.message || 'Failed to connect to TikTok LIVE';
+    if (friendlyMsg.includes('LIVE_NOT_FOUND') || friendlyMsg.includes('offline') || friendlyMsg.includes('not found')) {
+      friendlyMsg = `@${cleanId} is currently offline. Please start your TikTok LIVE stream before connecting!`;
+    }
+    return { success: false, message: friendlyMsg };
   }
 }
 
@@ -167,11 +181,11 @@ function disconnectTikTok() {
 
 // REST Endpoints
 app.post('/api/tiktok/connect', async (req, res) => {
-  const { channel } = req.body;
+  const { channel, sessionId } = req.body;
   if (!channel) {
     return res.status(400).json({ error: 'Username is required' });
   }
-  const result = await connectToTikTok(channel);
+  const result = await connectToTikTok(channel, sessionId);
   return res.json(result);
 });
 
@@ -297,7 +311,7 @@ wss.on('connection', (ws) => {
     try {
       const data = JSON.parse(raw.toString());
       if (data.action === 'connect' && data.channel) {
-        await connectToTikTok(data.channel);
+        await connectToTikTok(data.channel, data.sessionId);
       } else if (data.action === 'disconnect') {
         disconnectTikTok();
       }

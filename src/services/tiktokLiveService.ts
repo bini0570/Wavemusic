@@ -85,7 +85,7 @@ class TikTokLiveService {
     }
   }
 
-  public connect(channel: string) {
+  public connect(channel: string, sessionId?: string) {
     const cleanChannel = channel.startsWith('@') ? channel : `@${channel}`;
     this.currentChannel = cleanChannel;
 
@@ -95,6 +95,7 @@ class TikTokLiveService {
         JSON.stringify({
           action: 'connect',
           channel: cleanChannel,
+          sessionId,
         })
       );
     } else {
@@ -102,7 +103,7 @@ class TikTokLiveService {
       fetch('/api/tiktok/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel: cleanChannel }),
+        body: JSON.stringify({ channel: cleanChannel, sessionId }),
       }).catch((err) => {
         console.warn('REST connect fallback failed:', err);
       });

@@ -7,7 +7,7 @@ interface TikTokConnectModalProps {
   isConnected: boolean;
   channelName: string;
   isConnecting: boolean;
-  onConnect: (username: string) => void;
+  onConnect: (username: string, sessionId?: string) => void;
   onDisconnect: () => void;
 }
 
@@ -21,14 +21,20 @@ export const TikTokConnectModal: React.FC<TikTokConnectModalProps> = ({
   onDisconnect,
 }) => {
   const [username, setUsername] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('wave_tiktok_username');
+      const savedSession = localStorage.getItem('wave_tiktok_sessionid');
       if (saved) {
         setUsername(saved.replace(/^@/, ''));
       } else if (channelName && channelName !== '@your_live') {
         setUsername(channelName.replace(/^@/, ''));
+      }
+      if (savedSession) {
+        setSessionId(savedSession);
       }
     } catch {}
   }, [channelName, isOpen]);
@@ -41,8 +47,11 @@ export const TikTokConnectModal: React.FC<TikTokConnectModalProps> = ({
     if (!clean) return;
     try {
       localStorage.setItem('wave_tiktok_username', clean);
+      if (sessionId.trim()) {
+        localStorage.setItem('wave_tiktok_sessionid', sessionId.trim());
+      }
     } catch {}
-    onConnect(clean);
+    onConnect(clean, sessionId.trim() || undefined);
     onClose();
   };
 
@@ -152,6 +161,32 @@ export const TikTokConnectModal: React.FC<TikTokConnectModalProps> = ({
           <div style={{ padding: '10px 12px', borderRadius: '12px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', fontSize: '11px', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles style={{ height: '16px', width: '16px', color: '#fbbf24', flexShrink: 0 }} />
             <span>Account must be actively streaming LIVE on TikTok to sync chat.</span>
+          </div>
+
+          {/* Optional Cloud IP Bypass (sessionid) */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              style={{ background: 'none', border: 'none', color: '#06b6d4', fontSize: '11px', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+            >
+              {showAdvanced ? '− Hide Cloud Bypass Options' : '+ Cloud IP / Session ID (Optional)'}
+            </button>
+            {showAdvanced && (
+              <div style={{ marginTop: '8px' }}>
+                <input
+                  type="text"
+                  value={sessionId}
+                  onChange={(e) => setSessionId(e.target.value)}
+                  placeholder="Paste TikTok sessionid cookie (bypasses cloud IP check)"
+                  style={{
+                    width: '100%', borderRadius: '10px',
+                    background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(6,182,212,0.3)',
+                    padding: '8px 12px', fontSize: '11px', color: '#fff', outline: 'none', boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Buttons */}

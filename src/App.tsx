@@ -258,20 +258,44 @@ export default function App() {
   // Hardware clock sync with fullAudioEngine
   useEffect(() => {
     const unsubscribe = fullAudioEngine.subscribe({
-      onTimeUpdate: (time, dur) => {
+      onTimeUpdate: (time) => {
         setCurrentTime(Math.min(60, time));
-        if (dur > 0) setDuration(dur);
+        setDuration(60);
       },
       onStateChange: (playing) => {
         setIsPlaying(playing);
       },
       onEnded: () => {
-        fullAudioEngine.seekTo(0);
+        votingEngineRef.current?.skipRoundNow();
       },
     });
 
     return () => {
       unsubscribe();
+    };
+  }, []);
+
+  // Dynamically populate search library on launch with live trending tracks (0 hardcoded data)
+  useEffect(() => {
+    let isCancelled = false;
+    setIsLoadingSearch(true);
+
+    searchTracks('Top Hits')
+      .then((tracks) => {
+        if (!isCancelled && tracks.length > 0) {
+          setSearchResults(tracks);
+          setCurrentTrack(tracks[0]);
+          const streamUrl = tracks[0].fullAudioUrl || tracks[0].previewUrl;
+          fullAudioEngine.loadTrack(tracks[0].artist, tracks[0].title, 60, false, tracks[0].youtubeId, streamUrl);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!isCancelled) setIsLoadingSearch(false);
+      });
+
+    return () => {
+      isCancelled = true;
     };
   }, []);
 
@@ -346,12 +370,13 @@ export default function App() {
     } else {
       if (currentTrack) {
         playTrack(currentTrack, true);
+      } else if (searchResults.length > 0) {
+        playTrack(searchResults[0], true);
       } else {
-        fullAudioEngine.play();
-        setIsPlaying(true);
+        handleSearch('Top Hits');
       }
     }
-  }, [isPlaying, currentTrack, playTrack]);
+  }, [isPlaying, currentTrack, searchResults, playTrack, handleSearch]);
 
   const handleSkipRound = useCallback(() => {
     votingEngineRef.current?.skipRoundNow();
@@ -363,13 +388,13 @@ export default function App() {
   }, []);
 
   // TikTok Connect & Disconnect
-  const handleConnectTikTok = useCallback((username: string) => {
+  const handleConnectTikTok = useCallback((username: string, sessionId?: string) => {
     setIsConnectingTikTok(true);
     setAnnouncement({
       type: 'info',
       message: `Connecting to @${username.replace(/^@/, '')}...`,
     });
-    tiktokLiveService.connect(username);
+    tiktokLiveService.connect(username, sessionId);
   }, []);
 
   const handleDisconnectTikTok = useCallback(() => {

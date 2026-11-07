@@ -30,7 +30,7 @@ class FullAudioEngine {
   private hasBoundMessageListener = false;
   private isApiReady = false;
 
-  // Dual-deck audio crossfader
+  // Dual-deck audio crossfader with continuous 60-second round clock
   private deckA: HTMLAudioElement | null = null;
   private deckB: HTMLAudioElement | null = null;
   private activeDeckKey: 'A' | 'B' = 'A';
@@ -38,6 +38,9 @@ class FullAudioEngine {
   private crossfadeDurationMs = 2000; // 2 seconds seamless crossfade
   private masterVolume = 0.8;
   private isMuted = false;
+  private loopOffsetSec = 0;
+  private lastDeckTime = 0;
+  private roundDuration = 60;
 
   constructor() {
     this.initDecks();
@@ -57,12 +60,33 @@ class FullAudioEngine {
 
       deck.addEventListener('timeupdate', () => {
         if (this.activeDeckKey === key && !deck.paused) {
-          const time = deck.currentTime;
-          const dur = deck.duration && !isNaN(deck.duration) && deck.duration > 0
-            ? deck.duration
-            : this.duration;
-          this.currentTime = time;
-          this.notifyTime(time, dur);
+          const rawTime = deck.currentTime;
+
+          // Detect seamless loop boundary (e.g. was near end >15s and looped back to <3s)
+          if (this.lastDeckTime > 15 && rawTime < 3) {
+            const clipLen = (deck.duration && !isNaN(deck.duration) && deck.duration > 5)
+              ? deck.duration
+              : 30;
+            this.loopOffsetSec += clipLen;
+          }
+          this.lastDeckTime = rawTime;
+
+          const totalElapsed = this.loopOffsetSec + rawTime;
+          this.currentTime = totalElapsed;
+
+          // Always synchronize against the full 60s round duration
+          const targetDur = this.roundDuration > 0 ? this.roundDuration : 60;
+          this.notifyTime(this.currentTime, targetDur);
+
+          // Full 60-second round completed
+          if (totalElapsed >= targetDur) {
+            deck.pause();
+            deck.currentTime = 0;
+            this.loopOffsetSec = 0;
+            this.lastDeckTime = 0;
+            this.notifyState(false);
+            this.listeners.forEach((l) => l.onEnded());
+          }
         }
       });
 
@@ -269,10 +293,13 @@ class FullAudioEngine {
     youtubeId?: string,
     audioUrl?: string
   ): Promise<boolean> {
-    // Maintain genuine full song length (e.g. 195s, 345s, 372s)
-    this.duration = fullDurationSec && fullDurationSec > 35 ? fullDurationSec : 210;
+    // 60-Second voting round standard duration
+    this.roundDuration = fullDurationSec && fullDurationSec > 0 ? fullDurationSec : 60;
+    this.duration = this.roundDuration;
     this.currentTime = 0;
-    this.notifyTime(0, this.duration);
+    this.loopOffsetSec = 0;
+    this.lastDeckTime = 0;
+    this.notifyTime(0, this.roundDuration);
 
     // Stop any existing crossfade timer in progress
     if (this.crossfadeInterval) {
@@ -416,10 +443,17 @@ class FullAudioEngine {
   }
 
   public seekTo(seconds: number) {
-    this.currentTime = Math.max(0, seconds);
+    const targetDur = this.roundDuration > 0 ? this.roundDuration : 60;
+    this.currentTime = Math.max(0, Math.min(seconds, targetDur));
+
     const activeDeck = this.activeDeckKey === 'A' ? this.deckA : this.deckB;
     if (activeDeck && activeDeck.src) {
-      activeDeck.currentTime = this.currentTime;
+      const clipDuration = (activeDeck.duration && !isNaN(activeDeck.duration) && activeDeck.duration > 5)
+        ? activeDeck.duration
+        : 30;
+      this.loopOffsetSec = Math.floor(this.currentTime / clipDuration) * clipDuration;
+      activeDeck.currentTime = this.currentTime % clipDuration;
+      this.lastDeckTime = activeDeck.currentTime;
     }
 
     this.postMessage('seekTo', [this.currentTime, true]);
@@ -428,7 +462,7 @@ class FullAudioEngine {
         this.ytPlayer.seekTo(this.currentTime, true);
       } catch {}
     }
-    this.notifyTime(this.currentTime, this.duration);
+    this.notifyTime(this.currentTime, targetDur);
   }
 
   public setVolume(percent: number) {
