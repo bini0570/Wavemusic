@@ -5,7 +5,6 @@ import { DVNowPlaying } from './components/DVNowPlaying';
 import { DVLibrary } from './components/DVLibrary';
 import { DVEqualizerTab } from './components/DVEqualizerTab';
 import { DVSettingsTab } from './components/DVSettingsTab';
-import { DVStudioTab } from './components/DVStudioTab';
 import { DVMiniPlayer } from './components/DVMiniPlayer';
 import { DVBottomNav } from './components/DVBottomNav';
 
@@ -18,7 +17,7 @@ export default function App() {
   const [duration, setDuration] = useState(64);
   const [masterVolume, setMasterVolume] = useState(0.9);
 
-  // 4 Offline Destinations: 'home' | 'library' | 'studio' | 'equalizer' | 'settings'
+  // 4 Offline Destinations: 'home' | 'library' | 'equalizer' | 'settings'
   const [activeDestination, setActiveDestination] = useState('home');
 
   // Visualizer Mode
@@ -36,8 +35,9 @@ export default function App() {
   const [eightDSpeed, setEightDSpeed] = useState(8.0);
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState(null);
 
-  // Studio Tab State
+  // Studio / Sound Lab State
   const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [preservesPitch, setPreservesPitch] = useState(false);
   const [reverbDepth, setReverbDepth] = useState(0);
   const [compressorThreshold, setCompressorThreshold] = useState(-24);
 
@@ -58,10 +58,14 @@ export default function App() {
 
   const hiddenFileInputRef = useRef(null);
 
-  // Studio handlers
+  // Sound Lab & Studio handlers
   const handlePlaybackRateChange = (rate) => {
     setPlaybackRate(rate);
-    audioEngine.setPlaybackRate(rate);
+    audioEngine.setPlaybackRate(rate, preservesPitch);
+  };
+  const handlePreservesPitchChange = (preserve) => {
+    setPreservesPitch(preserve);
+    audioEngine.setPreservesPitch(preserve);
   };
   const handleReverbDepthChange = (wet) => {
     setReverbDepth(wet);
@@ -89,6 +93,7 @@ export default function App() {
       const audio = audioEngine.getAudioElement();
       if (audio) {
         audio.ontimeupdate = () => {
+          audioEngine.checkLoop();
           if (isMounted) {
             setCurrentTime(audio.currentTime);
           }
@@ -380,7 +385,7 @@ export default function App() {
       <main className="flex-1 w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl flex flex-col overflow-hidden relative">
         {/* DESTINATION 1: HOME (NOW PLAYING) */}
         {activeDestination === 'home' && (
-          <div className="w-full h-full flex flex-col justify-between overflow-y-auto pb-16 scrollbar-none tab-enter">
+          <div className="w-full h-full flex flex-col justify-between overflow-y-auto pb-20 scrollbar-none tab-enter">
             <DVNowPlaying
               currentTrack={currentTrack}
               isPlaying={isPlaying}
@@ -431,29 +436,15 @@ export default function App() {
           </div>
         )}
 
-        {/* DESTINATION 3: STUDIO */}
-        {activeDestination === 'studio' && (
-          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
-            <DVStudioTab
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
-              playbackRate={playbackRate}
-              onPlaybackRateChange={handlePlaybackRateChange}
-              reverbDepth={reverbDepth}
-              onReverbDepthChange={handleReverbDepthChange}
-              compressorThreshold={compressorThreshold}
-              onCompressorThresholdChange={handleCompressorThresholdChange}
-              currentTime={currentTime}
-              duration={duration}
-              onSeek={handleSeek}
-            />
-          </div>
-        )}
-
-        {/* DESTINATION 4: EQUALIZER */}
+        {/* DESTINATION 3: SOUND LAB & EQUALIZER (STUDIO INTEGRATED) */}
         {activeDestination === 'equalizer' && (
           <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
             <DVEqualizerTab
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              currentTime={currentTime}
+              duration={duration}
+              onSeek={handleSeek}
               effectsEnabled={effectsEnabled}
               onToggleEffects={handleToggleEffects}
               activeEffect={activeEffect}
@@ -465,11 +456,19 @@ export default function App() {
               eightDAngle={eightDAngle}
               eightDSpeed={eightDSpeed}
               onEightDSpeedChange={setEightDSpeed}
+              playbackRate={playbackRate}
+              onPlaybackRateChange={handlePlaybackRateChange}
+              preservesPitch={preservesPitch}
+              onPreservesPitchChange={handlePreservesPitchChange}
+              reverbDepth={reverbDepth}
+              onReverbDepthChange={handleReverbDepthChange}
+              compressorThreshold={compressorThreshold}
+              onCompressorThresholdChange={handleCompressorThresholdChange}
             />
           </div>
         )}
 
-        {/* DESTINATION 5: SETTINGS */}
+        {/* DESTINATION 4: SETTINGS */}
         {activeDestination === 'settings' && (
           <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
             <DVSettingsTab
@@ -492,7 +491,10 @@ export default function App() {
               <DVMiniPlayer
                 currentTrack={currentTrack}
                 isPlaying={isPlaying}
+                currentTime={currentTime}
+                duration={duration}
                 onPlayToggle={handlePlayToggle}
+                onPrevTrack={handlePrevTrack}
                 onNextTrack={handleNextTrack}
                 onOpenNowPlaying={() => setActiveDestination('home')}
               />

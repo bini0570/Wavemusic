@@ -54,6 +54,13 @@ class AudioEngine {
     this.audio.crossOrigin = 'anonymous';
     this.audio.preload = 'auto';
 
+    // DISABLE BROWSER TIME-STRETCH GRAIN BUFFER (ROOT CAUSE OF SLOWED BEAT LAG & STUTTER)
+    // When preservesPitch is false, audio samples scale smoothly with zero phase vocoder buffering lag!
+    this._preservePitch = false;
+    this.audio.preservesPitch = false;
+    if ('mozPreservesPitch' in this.audio) this.audio.mozPreservesPitch = false;
+    if ('webkitPreservesPitch' in this.audio) this.audio.webkitPreservesPitch = false;
+
     this.sourceNode = this.ctx.createMediaElementSource(this.audio);
 
     this.preGainNode = this.ctx.createGain();
@@ -224,8 +231,14 @@ class AudioEngine {
   loadTrack(url) {
     if (!this.audio) this.init();
     if (!this.audio) return;
+    const currentRate = this.audio.playbackRate || 1.0;
     this.audio.src = url;
     this.audio.load();
+    this.audio.playbackRate = currentRate;
+    const shouldPreserve = this._preservePitch ?? false;
+    this.audio.preservesPitch = shouldPreserve;
+    if ('mozPreservesPitch' in this.audio) this.audio.mozPreservesPitch = shouldPreserve;
+    if ('webkitPreservesPitch' in this.audio) this.audio.webkitPreservesPitch = shouldPreserve;
   }
 
   async play() {
@@ -414,14 +427,37 @@ class AudioEngine {
     this.eightDAnimationId = requestAnimationFrame(loop);
   }
 
-  setPlaybackRate(rate) {
+  setPlaybackRate(rate, preservePitch = null) {
     if (this.audio) {
-      this.audio.playbackRate = Math.max(0.25, Math.min(2.0, rate));
+      const clamped = Math.max(0.25, Math.min(2.0, rate));
+      if (preservePitch !== null) {
+        this._preservePitch = preservePitch;
+      }
+      const shouldPreserve = this._preservePitch ?? false;
+      this.audio.preservesPitch = shouldPreserve;
+      if ('mozPreservesPitch' in this.audio) this.audio.mozPreservesPitch = shouldPreserve;
+      if ('webkitPreservesPitch' in this.audio) this.audio.webkitPreservesPitch = shouldPreserve;
+      this.audio.playbackRate = clamped;
     }
   }
+
+  setPreservesPitch(preserve) {
+    this._preservePitch = preserve;
+    if (this.audio) {
+      this.audio.preservesPitch = preserve;
+      if ('mozPreservesPitch' in this.audio) this.audio.mozPreservesPitch = preserve;
+      if ('webkitPreservesPitch' in this.audio) this.audio.webkitPreservesPitch = preserve;
+    }
+  }
+
+  getPreservesPitch() {
+    return this._preservePitch ?? false;
+  }
+
   getPlaybackRate() {
     return this.audio ? this.audio.playbackRate : 1.0;
   }
+
   setReverbDepth(wet) {
     if (this.reverbWetGain && this.reverbDryGain && this.ctx) {
       const t = this.ctx.currentTime;
@@ -429,15 +465,28 @@ class AudioEngine {
       this.reverbDryGain.gain.setTargetAtTime(Math.max(0, Math.min(1, 1 - wet * 0.5)), t, 0.03);
     }
   }
+
   setCompressorThreshold(db) {
     if (this.compressorNode && this.ctx) {
       this.compressorNode.threshold.setTargetAtTime(db, this.ctx.currentTime, 0.03);
     }
   }
-  setLoopPoints(start, end) {
-    if (this.audio) {
-      this._loopStart = start;
-      this._loopEnd = end;
+
+  setLoopPoints(start, end, active = true) {
+    this._loopStart = start;
+    this._loopEnd = end;
+    this._loopActive = active;
+  }
+
+  setLoopActive(active) {
+    this._loopActive = active;
+  }
+
+  checkLoop() {
+    if (this._loopActive && this.audio && this._loopStart != null && this._loopEnd != null) {
+      if (this.audio.currentTime >= this._loopEnd) {
+        this.audio.currentTime = this._loopStart;
+      }
     }
   }
 
