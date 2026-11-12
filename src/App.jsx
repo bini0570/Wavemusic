@@ -298,7 +298,7 @@ export default function App() {
     }
   };
 
-  // Local file import handler - adds offline user audio files
+  // Local file import handler
   const handleLocalFileSelect = async (files) => {
     if (!files || files.length === 0) return;
     const audioCtx = audioEngine.getAudioContext();
@@ -339,11 +339,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07030e] text-neutral-100 flex flex-col justify-between overflow-x-hidden selection:bg-purple-500/30 font-sans">
+    <div className="h-[100dvh] max-h-[100dvh] w-full bg-[#07030e] text-neutral-100 flex flex-col justify-between overflow-hidden selection:bg-purple-500/30 font-sans pt-[env(safe-area-inset-top,0px)]">
       {/* Background Cosmic Nebula Light Glow */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[550px] h-[550px] bg-purple-700/15 rounded-full blur-[140px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[650px] h-[650px] bg-indigo-700/15 rounded-full blur-[160px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[450px] h-[450px] bg-purple-700/15 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[550px] h-[550px] bg-indigo-700/15 rounded-full blur-[140px]" />
       </div>
 
       {/* Hidden File Input for universal local media browsing */}
@@ -356,11 +356,11 @@ export default function App() {
         className="hidden"
       />
 
-      {/* MAIN BODY SWITCHER FOR THE 4 OFFLINE DESTINATIONS */}
-      <main className="flex-1 w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl flex flex-col items-center">
+      {/* MAIN VIEWPORT BODY */}
+      <main className="flex-1 w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl flex flex-col overflow-hidden relative">
         {/* DESTINATION 1: HOME (NOW PLAYING) */}
         {activeDestination === 'home' && (
-          <div className="w-full max-w-md flex flex-col items-center">
+          <div className="w-full h-full flex flex-col justify-between overflow-y-auto pb-16 scrollbar-none">
             <DVNowPlaying
               currentTrack={currentTrack}
               isPlaying={isPlaying}
@@ -388,9 +388,9 @@ export default function App() {
           </div>
         )}
 
-        {/* DESTINATION 2: LIBRARY (Local media, folders, playlists) */}
+        {/* DESTINATION 2: LIBRARY */}
         {activeDestination === 'library' && (
-          <div className="w-full max-w-2xl">
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none">
             <DVLibrary
               tracks={tracks}
               currentTrackId={currentTrack?.id || null}
@@ -411,9 +411,9 @@ export default function App() {
           </div>
         )}
 
-        {/* DESTINATION 3: EQUALIZER & 8D AUDIO LAB */}
+        {/* DESTINATION 3: EQUALIZER */}
         {activeDestination === 'equalizer' && (
-          <div className="w-full max-w-2xl px-4 py-3 pb-24">
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none">
             <DVEqualizerTab
               effectsEnabled={effectsEnabled}
               onToggleEffects={handleToggleEffects}
@@ -430,9 +430,9 @@ export default function App() {
           </div>
         )}
 
-        {/* DESTINATION 4: SETTINGS & DAC */}
+        {/* DESTINATION 4: SETTINGS */}
         {activeDestination === 'settings' && (
-          <div className="w-full max-w-2xl px-4 py-3 pb-24">
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none">
             <DVSettingsTab
               sleepTimerMinutes={sleepTimerMinutes}
               onSetSleepTimer={setSleepTimerMinutes}
@@ -446,10 +446,10 @@ export default function App() {
           </div>
         )}
 
-        {/* Persistent Mini Player shown on all non-home tabs */}
+        {/* Persistent Mini Player shown on non-home tabs */}
         {activeDestination !== 'home' && currentTrack && (
-          <div className="fixed bottom-16 left-0 right-0 z-30 px-4 pb-2">
-            <div className="max-w-2xl mx-auto">
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+58px)] left-0 right-0 z-30 px-3 pb-1">
+            <div className="max-w-md sm:max-w-xl mx-auto">
               <DVMiniPlayer
                 currentTrack={currentTrack}
                 isPlaying={isPlaying}
@@ -462,7 +462,7 @@ export default function App() {
         )}
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION (4 Clean Offline Destinations) */}
+      {/* MOBILE BOTTOM NAVIGATION */}
       <div className="fixed bottom-0 left-0 right-0 z-40">
         <DVBottomNav
           activeTab={activeDestination}

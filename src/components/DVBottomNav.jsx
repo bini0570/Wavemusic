@@ -10,7 +10,7 @@ export const DVBottomNav = ({ activeTab, onTabChange }) => {
   ];
 
   return (
-    <nav className="w-full bg-[#080312]/95 backdrop-blur-2xl border-t border-purple-500/15 px-4 py-2 flex items-center justify-around select-none z-30">
+    <nav className="w-full bg-[#080312]/95 backdrop-blur-2xl border-t border-purple-500/20 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] flex items-center justify-around select-none z-40">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -18,7 +18,7 @@ export const DVBottomNav = ({ activeTab, onTabChange }) => {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex flex-col items-center justify-center gap-1 py-1 px-4 min-w-[64px] transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 py-1 px-3 min-w-[56px] transition-all relative ${
               isActive
                 ? 'text-purple-300 font-semibold scale-105'
                 : 'text-neutral-400 hover:text-neutral-200'
@@ -26,20 +26,20 @@ export const DVBottomNav = ({ activeTab, onTabChange }) => {
           >
             {/* Active glowing indicator pill on top */}
             {isActive && (
-              <div className="absolute -top-2 w-8 h-1 rounded-full shadow-[0_0_12px_#c084fc] bg-gradient-to-r from-purple-500 to-indigo-400" />
+              <div className="absolute -top-1.5 w-6 h-0.5 rounded-full shadow-[0_0_10px_#c084fc] bg-gradient-to-r from-purple-500 to-indigo-400" />
             )}
 
             <div className="relative">
               <Icon
                 className={`w-5 h-5 transition-transform ${
                   isActive
-                    ? 'text-purple-300 stroke-[2.4px] drop-shadow-[0_0_10px_rgba(192,132,252,0.85)]'
+                    ? 'text-purple-300 stroke-[2.2px] drop-shadow-[0_0_8px_rgba(192,132,252,0.85)]'
                     : 'stroke-[1.8px]'
                 }`}
               />
             </div>
             <span
-              className={`text-[11px] tracking-tight truncate max-w-[60px] ${
+              className={`text-[10px] tracking-tight truncate ${
                 isActive ? 'text-purple-200 font-medium' : 'text-neutral-400'
               }`}
             >

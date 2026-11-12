@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { extractWaveformFromFile, parseAudioFilename } from '../audio/syntheticTracks';
 import { audioEngine } from '../audio/audioEngine';
+import { DVAlbumArt } from './DVAlbumArt';
 
 export const DVLibrary = ({
   tracks,
@@ -286,17 +287,11 @@ export const DVLibrary = ({
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   <div className="w-12 h-12 rounded-xl overflow-hidden border border-purple-500/30 shrink-0 bg-neutral-900 relative">
-                    <img
-                      src={
-                        track.coverUrl ||
-                        '/assets/aistudio/6fb296ac-33e4-4fa6-b660-2b2aff3cb756_f201cdfc.png'
-                      }
-                      alt={track.title}
-                      className="w-full h-full object-cover"
-                      style={{
-                        objectPosition: track.coverUrl ? 'center' : '50% 24%',
-                        transform: track.coverUrl ? 'none' : 'scale(1.8)',
-                      }}
+                    <DVAlbumArt
+                      track={track}
+                      isPlaying={isSelected}
+                      size="sm"
+                      className="w-full h-full"
                     />
                     {isSelected && (
                       <div className="absolute inset-0 bg-purple-600/40 flex items-center justify-center">
@@ -384,13 +379,10 @@ export const DVLibrary = ({
               className="p-3 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition group"
             >
               <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-900 relative mb-2">
-                <img
-                  src={
-                    albumTracks[0].coverUrl ||
-                    '/assets/aistudio/6fb296ac-33e4-4fa6-b660-2b2aff3cb756_f201cdfc.png'
-                  }
-                  alt={album}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                <DVAlbumArt
+                  track={albumTracks[0]}
+                  size="md"
+                  className="w-full h-full group-hover:scale-105 transition duration-300"
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                   <Play className="w-8 h-8 text-white fill-white" />

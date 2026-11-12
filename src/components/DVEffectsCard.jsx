@@ -30,28 +30,28 @@ export const DVEffectsCard = ({
   const [showPresetMenu, setShowPresetMenu] = useState(false);
 
   const effectTiles = [
-    { id: 'normal', label: 'Normal', icon: <Activity className="w-5 h-5" /> },
-    { id: '8d', label: '8D Audio', icon: <Headphones className="w-5 h-5" /> },
-    { id: 'bass_boost', label: 'Bass Boost', icon: <BarChart2 className="w-5 h-5" /> },
-    { id: 'vocal_boost', label: 'Vocal Boost', icon: <Mic className="w-5 h-5" /> },
-    { id: 'treble_boost', label: 'Treble Boost', icon: <Zap className="w-5 h-5" /> },
-    { id: 'echo', label: 'Echo / Delay', icon: <Repeat className="w-5 h-5" /> },
-    { id: 'reverb', label: 'Reverb', icon: <Waves className="w-5 h-5" /> },
-    { id: 'virtualizer', label: 'Virtualizer', icon: <Box className="w-5 h-5" /> },
-    { id: 'surround', label: 'Surround', icon: <Radio className="w-5 h-5" /> },
-    { id: 'night_mode', label: 'Night Mode', icon: <Moon className="w-5 h-5" /> },
-    { id: 'trubass', label: 'TruBass', icon: <Volume2 className="w-5 h-5" /> },
-    { id: 'wide_stereo', label: 'Wide Stereo', icon: <MoveHorizontal className="w-5 h-5" /> },
+    { id: 'normal', label: 'Normal', icon: <Activity className="w-4 h-4" /> },
+    { id: '8d', label: '8D Audio', icon: <Headphones className="w-4 h-4" /> },
+    { id: 'bass_boost', label: 'Bass Boost', icon: <BarChart2 className="w-4 h-4" /> },
+    { id: 'vocal_boost', label: 'Vocal', icon: <Mic className="w-4 h-4" /> },
+    { id: 'treble_boost', label: 'Treble', icon: <Zap className="w-4 h-4" /> },
+    { id: 'echo', label: 'Echo', icon: <Repeat className="w-4 h-4" /> },
+    { id: 'reverb', label: 'Reverb', icon: <Waves className="w-4 h-4" /> },
+    { id: 'virtualizer', label: 'Virtualizer', icon: <Box className="w-4 h-4" /> },
+    { id: 'surround', label: 'Surround', icon: <Radio className="w-4 h-4" /> },
+    { id: 'night_mode', label: 'Night Mode', icon: <Moon className="w-4 h-4" /> },
+    { id: 'trubass', label: 'TruBass', icon: <Volume2 className="w-4 h-4" /> },
+    { id: 'wide_stereo', label: 'Wide Stereo', icon: <MoveHorizontal className="w-4 h-4" /> },
   ];
 
   const eqPresetsList = [
     { id: 'custom', label: 'Custom' },
-    { id: 'normal', label: 'Normal' },
+    { id: 'normal', label: 'Flat (Normal)' },
     { id: 'deep_bass', label: 'Deep Bass' },
     { id: 'edm', label: 'EDM / Dance' },
     { id: 'pop', label: 'Pop' },
     { id: 'rock', label: 'Rock' },
-    { id: 'vocal', label: 'Vocal' },
+    { id: 'vocal', label: 'Vocal Boost' },
     { id: 'jazz', label: 'Jazz' },
     { id: 'classical', label: 'Classical' },
     { id: 'acoustic', label: 'Acoustic' },
@@ -72,17 +72,15 @@ export const DVEffectsCard = ({
   ];
 
   return (
-    <div className="w-full bg-[#140c26]/90 border border-purple-900/30 rounded-3xl p-4 sm:p-5 flex flex-col gap-5 shadow-[0_10px_35px_-10px_rgba(10,5,25,0.8)] backdrop-blur-xl">
+    <div className="w-full bg-[#140c26]/90 border border-purple-500/20 rounded-3xl p-3.5 sm:p-5 flex flex-col gap-4 shadow-xl backdrop-blur-xl">
       {/* 1. AUDIO EFFECTS SECTION */}
-      <div className="flex flex-col gap-3.5">
+      <div className="flex flex-col gap-3">
         {/* Section Header with Master Toggle Switch */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-purple-400">
-              <Sliders className="w-4 h-4" />
-            </span>
-            <h3 className="text-sm font-semibold tracking-wide text-neutral-100 font-sans">
-              Audio Effects
+          <div className="flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-purple-400" />
+            <h3 className="text-xs sm:text-sm font-semibold tracking-wide text-neutral-100 font-sans">
+              Audio DSP Effects
             </h3>
           </div>
 
@@ -90,7 +88,7 @@ export const DVEffectsCard = ({
           <button
             onClick={onToggleEffects}
             className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 ${
-              effectsEnabled ? 'bg-purple-600 shadow-[0_0_12px_rgba(168,85,247,0.5)]' : 'bg-neutral-800'
+              effectsEnabled ? 'bg-purple-600 shadow-[0_0_12px_rgba(168,85,247,0.6)]' : 'bg-neutral-800'
             }`}
           >
             <div
@@ -101,24 +99,24 @@ export const DVEffectsCard = ({
           </button>
         </div>
 
-        {/* 12 Effect Presets Grid */}
-        <div className="grid grid-cols-4 gap-2">
+        {/* 12 Effect Presets Grid (3 columns on mobile, 4 on larger screens) */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {effectTiles.map((tile) => {
             const isSelected = effectsEnabled && activeEffect === tile.id;
             return (
               <button
                 key={tile.id}
                 onClick={() => onSelectEffect(tile.id)}
-                className={`flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl transition-all border text-center ${
+                className={`flex flex-col items-center justify-center gap-1.5 py-2.5 px-1 rounded-2xl transition-all border text-center active:scale-95 ${
                   isSelected
-                    ? 'bg-purple-950/60 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.35)] text-purple-200'
-                    : 'bg-[#1b1033]/60 border-purple-900/20 text-neutral-400 hover:text-neutral-200 hover:border-purple-800/40'
+                    ? 'bg-purple-950/70 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)] text-purple-200'
+                    : 'bg-[#1b1033]/60 border-purple-900/20 text-neutral-400 hover:text-neutral-200'
                 }`}
               >
                 <div className={`${isSelected ? 'text-purple-300' : 'text-neutral-400'}`}>
                   {tile.icon}
                 </div>
-                <span className="text-[10px] font-medium leading-none whitespace-nowrap">
+                <span className="text-[10px] font-medium leading-none truncate max-w-[85px]">
                   {tile.label}
                 </span>
               </button>
@@ -128,22 +126,20 @@ export const DVEffectsCard = ({
       </div>
 
       {/* 2. 10-BAND EQUALIZER SECTION */}
-      <div className="flex flex-col gap-3 pt-1 border-t border-purple-900/20">
+      <div className="flex flex-col gap-3 pt-3 border-t border-purple-500/15">
         {/* Equalizer Header with Preset Selector */}
         <div className="flex items-center justify-between relative">
-          <div className="flex items-center gap-2.5">
-            <span className="text-purple-400">
-              <Activity className="w-4 h-4" />
-            </span>
-            <h3 className="text-sm font-semibold tracking-wide text-neutral-100 font-sans">
-              Equalizer
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-purple-400" />
+            <h3 className="text-xs sm:text-sm font-semibold tracking-wide text-neutral-100 font-sans">
+              10-Band Equalizer
             </h3>
           </div>
 
           {/* Preset Button */}
           <button
             onClick={() => setShowPresetMenu(!showPresetMenu)}
-            className="flex items-center gap-1 text-xs text-neutral-300 hover:text-white px-2.5 py-1 rounded-full bg-purple-950/40 border border-purple-800/40 transition-colors"
+            className="flex items-center gap-1 text-[11px] text-neutral-300 hover:text-white px-2.5 py-1 rounded-full bg-purple-950/50 border border-purple-500/30 transition-colors"
           >
             <span className="capitalize">{eqPreset.replace('_', ' ')}</span>
             <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
@@ -151,7 +147,7 @@ export const DVEffectsCard = ({
 
           {/* Preset Dropdown Menu */}
           {showPresetMenu && (
-            <div className="absolute right-0 top-8 z-30 w-44 bg-[#1b1033] border border-purple-800/60 rounded-2xl shadow-2xl p-1.5 flex flex-col gap-0.5">
+            <div className="absolute right-0 top-8 z-30 w-44 bg-[#1b1033] border border-purple-500/40 rounded-2xl shadow-2xl p-1.5 flex flex-col gap-0.5">
               {eqPresetsList.map((p) => (
                 <button
                   key={p.id}
@@ -172,16 +168,16 @@ export const DVEffectsCard = ({
         </div>
 
         {/* 10-Band Sliders Grid */}
-        <div className="flex items-center gap-1 pt-2 select-none">
+        <div className="flex items-center gap-1 pt-1 select-none overflow-x-auto">
           {/* Vertical Scale Reference Labels */}
-          <div className="flex flex-col justify-between h-36 text-[9px] font-mono text-neutral-400 pb-5 shrink-0">
-            <span>+12dB</span>
-            <span>0dB</span>
-            <span>-12dB</span>
+          <div className="flex flex-col justify-between h-32 text-[8px] font-mono text-neutral-400 pb-4 shrink-0 pr-1">
+            <span>+12</span>
+            <span>0</span>
+            <span>-12</span>
           </div>
 
           {/* 11 Vertical Sliders */}
-          <div className="flex-1 grid grid-cols-11 gap-1 items-end h-36">
+          <div className="flex-1 grid grid-cols-11 gap-0.5 sm:gap-1 items-end h-32">
             {bandsConfig.map((band) => {
               const val = eqBands[band.key] || 0;
               const percent = ((val + 12) / 24) * 100;
@@ -189,10 +185,10 @@ export const DVEffectsCard = ({
               return (
                 <div key={band.key} className="flex flex-col items-center h-full justify-between">
                   {/* Slider Track */}
-                  <div className="relative w-full h-28 flex items-center justify-center">
+                  <div className="relative w-full h-24 flex items-center justify-center">
                     <div className="w-1.5 h-full bg-[#231542] rounded-full relative overflow-hidden">
                       <div
-                        className="w-full bg-purple-500/50 absolute left-0"
+                        className="w-full bg-gradient-to-t from-indigo-500 to-purple-400 absolute left-0"
                         style={{
                           bottom: val >= 0 ? '50%' : `${percent}%`,
                           top: val >= 0 ? `${100 - percent}%` : '50%',
@@ -201,8 +197,8 @@ export const DVEffectsCard = ({
                     </div>
 
                     <div
-                      className="absolute w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_8px_rgba(192,132,252,0.8)] border border-purple-400 pointer-events-none transition-all"
-                      style={{ bottom: `calc(${percent}% - 7px)` }}
+                      className="absolute w-3 h-3 rounded-full bg-white shadow-[0_0_8px_rgba(192,132,252,0.8)] border border-purple-400 pointer-events-none transition-all"
+                      style={{ bottom: `calc(${percent}% - 6px)` }}
                     />
 
                     <input
@@ -218,7 +214,7 @@ export const DVEffectsCard = ({
                   </div>
 
                   {/* Frequency Label */}
-                  <span className="text-[9px] font-mono text-neutral-400 pt-1 text-center">
+                  <span className="text-[8px] font-mono text-neutral-400 pt-0.5 text-center leading-none">
                     {band.label}
                   </span>
                 </div>
