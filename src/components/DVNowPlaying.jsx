@@ -101,14 +101,9 @@ export const DVNowPlaying = ({
           <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-600 to-fuchsia-500 flex items-center justify-center shadow-[0_0_12px_rgba(168,85,247,0.7)]">
             <Play className="w-3.5 h-3.5 text-white fill-white ml-0.5" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-sm font-bold tracking-wide text-white leading-tight">
-              DV Music
-            </h1>
-            <span className="text-[9px] text-purple-300/80 font-normal">
-              100% Offline Audio
-            </span>
-          </div>
+          <h1 className="text-sm font-bold tracking-wide text-white leading-tight font-sans">
+            DV Music
+          </h1>
         </div>
 
         {/* Right Tools: 32-Bit DSP spec badge & Vinyl Toggle */}

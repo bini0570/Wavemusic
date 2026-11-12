@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#140826" />
+      <stop offset="50%" stop-color="#090314" />
+      <stop offset="100%" stop-color="#040108" />
+    </linearGradient>
+
+    <!-- Metallic Rim Border -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Neon Vinyl Glow -->
+    <radialGradient id="neonAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0.0" />
+    </radialGradient>
+
+    <!-- Vinyl Center Gradient -->
+    <linearGradient id="centerDiscGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+
+    <!-- Waveform Gradient -->
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="35%" stop-color="#818cf8" />
+      <stop offset="65%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#f472b6" />
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for Glow -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Base Squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="112" ry="112" fill="url(#bgGrad)" stroke="url(#rimGrad)" stroke-width="4" />
+
+  <!-- Ambient Neon Aura -->
+  <circle cx="256" cy="256" r="200" fill="url(#neonAura)" />
+
+  <!-- Outer Vinyl Rim -->
+  <circle cx="256" cy="256" r="180" fill="#0d061c" stroke="#2a164d" stroke-width="2" />
+
+  <!-- Concentric Vinyl Grooves -->
+  <circle cx="256" cy="256" r="162" fill="none" stroke="#1d0f36" stroke-width="1.5" stroke-dasharray="12 4" />
+  <circle cx="256" cy="256" r="144" fill="none" stroke="#251242" stroke-width="1.5" />
+  <circle cx="256" cy="256" r="126" fill="none" stroke="#1d0f36" stroke-width="1.5" stroke-dasharray="16 6" />
+  <circle cx="256" cy="256" r="108" fill="none" stroke="#281448" stroke-width="1.5" />
+
+  <!-- Dynamic Sonic Waveform Bars Across Center (Stylized Wave "W") -->
+  <g filter="url(#neonGlow)">
+    <!-- Bar 1 -->
+    <rect x="156" y="232" width="10" height="48" rx="5" fill="url(#waveGrad)" opacity="0.75" />
+    <!-- Bar 2 -->
+    <rect x="174" y="210" width="10" height="92" rx="5" fill="url(#waveGrad)" opacity="0.85" />
+    <!-- Bar 3 -->
+    <rect x="192" y="180" width="10" height="152" rx="5" fill="url(#waveGrad)" />
+    <!-- Bar 4 -->
+    <rect x="210" y="216" width="10" height="80" rx="5" fill="url(#waveGrad)" />
+
+    <!-- Bar 5 -->
+    <rect x="292" y="216" width="10" height="80" rx="5" fill="url(#waveGrad)" />
+    <!-- Bar 6 -->
+    <rect x="310" y="180" width="10" height="152" rx="5" fill="url(#waveGrad)" />
+    <!-- Bar 7 -->
+    <rect x="328" y="210" width="10" height="92" rx="5" fill="url(#waveGrad)" opacity="0.85" />
+    <!-- Bar 8 -->
+    <rect x="346" y="232" width="10" height="48" rx="5" fill="url(#waveGrad)" opacity="0.75" />
+  </g>
+
+  <!-- Center Hub Turntable Disc -->
+  <circle cx="256" cy="256" r="54" fill="url(#centerDiscGrad)" stroke="#c084fc" stroke-width="3" filter="url(#neonGlow)" />
+  <circle cx="256" cy="256" r="44" fill="#0b0416" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
+
+  <!-- Center Play Triangle Emblem -->
+  <polygon points="247,241 271,256 247,271" fill="#ffffff" filter="url(#neonGlow)" />
+
+  <!-- Micro Spindle Center Hole -->
+  <circle cx="256" cy="256" r="5" fill="#a855f7" />
+</svg>

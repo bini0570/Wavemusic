@@ -1,12 +1,7 @@
 {
-  "name": "DV Music - Offline Music Player",
   "short_name": "DV Music",
-  "description": "100% Offline Music Player with 8D Binaural Audio, 10-Band EQ, and Real-Time Spectrum Visualizer",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#07030e",
-  "theme_color": "#07030e",
-  "orientation": "portrait-primary",
+  "name": "DV Music - Offline Web Audio Player",
+  "description": "High-fidelity offline music player with 8D spatial audio, 10-band equalizer, and neon spectrum visualizer.",
   "icons": [
     {
       "src": "/icon.svg",
@@ -14,5 +9,10 @@
       "sizes": "any",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "start_url": "/",
+  "background_color": "#07030e",
+  "theme_color": "#07030e",
+  "display": "standalone",
+  "orientation": "portrait"
 }

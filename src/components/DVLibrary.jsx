@@ -1,6 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import {
-  UploadCloud,
   Folder,
   Music,
   Play,
@@ -12,7 +11,6 @@ import {
   Disc,
   FolderTree,
   Plus,
-  FolderOpen,
   ListPlus,
   X,
 } from 'lucide-react';
@@ -31,8 +29,6 @@ export const DVLibrary = ({
   const fileInputRef = useRef(null);
   const [subTab, setSubTab] = useState('songs');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // User-created playlists with localStorage persistence
   const [playlists, setPlaylists] = useState(() => {
@@ -54,9 +50,9 @@ export const DVLibrary = ({
   const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
   const [trackToAddToPlaylist, setTrackToAddToPlaylist] = useState(null);
 
-  // Handle files selected or dropped
+  // Handle files selected
   const handleFiles = async (files) => {
-    setIsProcessing(true);
+    if (!files || files.length === 0) return;
     const audioCtx = audioEngine.getAudioContext();
     const newTracks = [];
 
@@ -94,10 +90,10 @@ export const DVLibrary = ({
       onAddTracks(newTracks);
       onSelectTrack(newTracks[0]);
     }
-    setIsProcessing(false);
   };
 
   const formatTime = (sec) => {
+    if (!sec || isNaN(sec)) return '0:00';
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
@@ -127,7 +123,7 @@ export const DVLibrary = ({
   const foldersGrouped = useMemo(() => {
     const map = new Map();
     for (const t of tracks) {
-      const folder = t.folder || '/Internal Storage/Music';
+      const folder = t.folder || '/Storage/Music';
       if (!map.has(folder)) map.set(folder, []);
       map.get(folder).push(t);
     }
@@ -160,22 +156,27 @@ export const DVLibrary = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-4 px-4 sm:px-6 pt-3 pb-28 select-none text-white">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 py-1">
-        <div>
-          <h2 className="text-xl font-bold text-white tracking-tight font-sans">Music Library</h2>
-          <span className="text-xs text-purple-300/70">
-            {tracks.length} Offline {tracks.length === 1 ? 'Track' : 'Tracks'}
-          </span>
+    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none text-white max-w-2xl mx-auto">
+      {/* Header & Search Bar with Add Button */}
+      <div className="flex items-center gap-2 pt-1">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search library..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#130b24]/90 border border-purple-500/20 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-400 transition-colors"
+          />
         </div>
 
+        {/* Minimalist Add Audio Button */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white text-xs font-semibold flex items-center gap-1.5 shadow-[0_0_15px_rgba(168,85,247,0.4)] transition-all active:scale-95"
+          className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all active:scale-95 shrink-0"
+          title="Import Audio Files"
         >
-          <FolderOpen className="w-4 h-4" />
-          <span>Add Music</span>
+          <Plus className="w-4 h-4" />
         </button>
       </div>
 
@@ -190,7 +191,7 @@ export const DVLibrary = ({
       />
 
       {/* 6 SUB-TABS: Songs | Albums | Artists | Folders | Playlists | Favorites */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-purple-500/20 text-xs">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-purple-500/15 text-xs">
         {[
           { id: 'songs', label: 'Songs', icon: Music },
           { id: 'albums', label: 'Albums', icon: Disc },
@@ -205,9 +206,9 @@ export const DVLibrary = ({
             <button
               key={tab.id}
               onClick={() => setSubTab(tab.id)}
-              className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 ${
                 isActive
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-950/60 font-semibold'
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-950 font-semibold'
                   : 'bg-white/5 text-purple-300/70 hover:bg-white/10 hover:text-white'
               }`}
             >
@@ -216,58 +217,6 @@ export const DVLibrary = ({
             </button>
           );
         })}
-      </div>
-
-      {/* Drag & Drop Import Banner (only on Songs tab) */}
-      {subTab === 'songs' && (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDraggingOver(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setIsDraggingOver(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDraggingOver(false);
-            if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          className={`w-full p-3.5 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex items-center justify-between gap-3 ${
-            isDraggingOver
-              ? 'border-purple-400 bg-purple-950/40 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-              : 'border-purple-900/40 hover:border-purple-700/60 bg-[#160d29]/60'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
-              <UploadCloud className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-white">
-                {isProcessing ? 'Importing Audio Files...' : 'Tap or Drop Local Audio Files'}
-              </span>
-              <span className="text-[11px] text-neutral-400">
-                FLAC, MP3, WAV, AAC, M4A, OGG · 100% Offline Playback
-              </span>
-            </div>
-          </div>
-          <span className="text-xs font-mono text-purple-400 font-semibold shrink-0">BROWSE</span>
-        </div>
-      )}
-
-      {/* Search Input */}
-      <div className="relative w-full">
-        <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          type="text"
-          placeholder="Search tracks, artists, or offline files..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#130b24] border border-purple-900/30 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-purple-500 transition-colors"
-        />
       </div>
 
       {/* SUB-TAB 1: SONGS & FAVORITES */}
@@ -279,14 +228,14 @@ export const DVLibrary = ({
               <div
                 key={track.id}
                 onClick={() => onSelectTrack(track)}
-                className={`p-2.5 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all border ${
+                className={`p-2 rounded-2xl flex items-center justify-between gap-3 cursor-pointer transition-all border active:scale-[0.99] ${
                   isSelected
-                    ? 'bg-purple-950/50 border-purple-500/60 shadow-[0_0_15px_rgba(168,85,247,0.25)]'
+                    ? 'bg-purple-950/60 border-purple-500/60 shadow-[0_0_14px_rgba(168,85,247,0.3)]'
                     : 'bg-[#150d2b]/40 border-purple-900/20 hover:bg-[#1a0f35]/60 hover:border-purple-800/30'
                 }`}
               >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-12 h-12 rounded-xl overflow-hidden border border-purple-500/30 shrink-0 bg-neutral-900 relative">
+                <div className="flex items-center gap-3 overflow-hidden min-w-0">
+                  <div className="w-11 h-11 rounded-xl overflow-hidden border border-purple-500/30 shrink-0 bg-neutral-900 relative">
                     <DVAlbumArt
                       track={track}
                       isPlaying={isSelected}
@@ -295,25 +244,25 @@ export const DVLibrary = ({
                     />
                     {isSelected && (
                       <div className="absolute inset-0 bg-purple-600/40 flex items-center justify-center">
-                        <Play className="w-5 h-5 text-white fill-white" />
+                        <Play className="w-4 h-4 text-white fill-white ml-0.5" />
                       </div>
                     )}
                   </div>
 
-                  <div className="flex flex-col truncate">
+                  <div className="flex flex-col truncate min-w-0">
                     <span
-                      className={`text-sm font-semibold truncate ${
+                      className={`text-xs font-semibold truncate ${
                         isSelected ? 'text-purple-300' : 'text-white'
                       }`}
                     >
                       {track.title}
                     </span>
-                    <div className="flex items-center gap-1.5 text-xs text-neutral-400 truncate">
+                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-400 truncate">
                       <span>{track.artist}</span>
-                      <span aria-hidden="true">·</span>
-                      <span className="font-mono text-[10px] text-purple-400">{track.format}</span>
-                      <span aria-hidden="true">·</span>
-                      <span className="font-mono text-[10px]">{formatTime(track.duration)}</span>
+                      <span>·</span>
+                      <span className="font-mono text-purple-400">{track.format}</span>
+                      <span>·</span>
+                      <span className="font-mono">{formatTime(track.duration)}</span>
                     </div>
                   </div>
                 </div>
@@ -321,28 +270,28 @@ export const DVLibrary = ({
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setTrackToAddToPlaylist(track)}
-                    className="p-2 text-neutral-500 hover:text-purple-300 transition-colors"
+                    className="p-1.5 text-neutral-500 hover:text-purple-300 transition-colors"
                     title="Add to Playlist"
                   >
-                    <ListPlus className="w-4 h-4" />
+                    <ListPlus className="w-3.5 h-3.5" />
                   </button>
 
                   <button
                     onClick={() => onToggleFavorite(track.id)}
-                    className={`p-2 transition-colors ${
+                    className={`p-1.5 transition-colors ${
                       track.isFavorite ? 'text-pink-500 fill-pink-500' : 'text-neutral-500 hover:text-white'
                     }`}
                     title="Favorite"
                   >
-                    <Heart className={`w-4 h-4 ${track.isFavorite ? 'fill-current' : ''}`} />
+                    <Heart className={`w-3.5 h-3.5 ${track.isFavorite ? 'fill-current' : ''}`} />
                   </button>
 
                   <button
                     onClick={() => onRemoveTrack(track.id)}
-                    className="p-2 text-neutral-500 hover:text-red-400 transition-colors"
+                    className="p-1.5 text-neutral-500 hover:text-red-400 transition-colors"
                     title="Remove Track"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -350,19 +299,16 @@ export const DVLibrary = ({
           })}
 
           {filteredTracks.length === 0 && (
-            <div className="py-16 flex flex-col items-center justify-center text-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                <Music className="w-6 h-6" />
+            <div className="py-14 flex flex-col items-center justify-center text-center gap-2">
+              <div className="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                <Music className="w-5 h-5" />
               </div>
-              <span className="text-sm font-semibold text-white">No tracks in library</span>
-              <p className="text-xs text-purple-300/60 max-w-xs">
-                Import music files (MP3, WAV, FLAC, AAC, M4A) from your device to begin playback.
-              </p>
+              <span className="text-xs font-medium text-neutral-300">No tracks found</span>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-950/50"
+                className="mt-1 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md"
               >
-                Browse Device Audio
+                Import Music
               </button>
             </div>
           )}
@@ -376,20 +322,20 @@ export const DVLibrary = ({
             <div
               key={album}
               onClick={() => onSelectTrack(albumTracks[0])}
-              className="p-3 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition group"
+              className="p-2.5 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition active:scale-95 group"
             >
-              <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-900 relative mb-2">
+              <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-900 relative mb-1.5">
                 <DVAlbumArt
                   track={albumTracks[0]}
                   size="md"
                   className="w-full h-full group-hover:scale-105 transition duration-300"
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                  <Play className="w-8 h-8 text-white fill-white" />
+                  <Play className="w-7 h-7 text-white fill-white ml-0.5" />
                 </div>
               </div>
               <h3 className="text-xs font-semibold text-white truncate">{album}</h3>
-              <p className="text-[11px] text-purple-300/70 truncate">{albumTracks.length} Songs</p>
+              <p className="text-[10px] text-purple-300/70 truncate">{albumTracks.length} Songs</p>
             </div>
           ))}
         </div>
@@ -397,23 +343,23 @@ export const DVLibrary = ({
 
       {/* SUB-TAB 3: ARTISTS */}
       {subTab === 'artists' && (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {artistsGrouped.map(({ artist, tracks: artistTracks }) => (
             <div
               key={artist}
               onClick={() => onSelectTrack(artistTracks[0])}
-              className="p-3 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition flex items-center justify-between"
+              className="p-2.5 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition flex items-center justify-between active:scale-[0.99]"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-200">
-                  <User className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-200">
+                  <User className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-xs font-semibold text-white">{artist}</h3>
-                  <p className="text-[11px] text-purple-300/60">{artistTracks.length} Songs</p>
+                  <p className="text-[10px] text-purple-300/60">{artistTracks.length} Songs</p>
                 </div>
               </div>
-              <Play className="w-4 h-4 text-purple-400 mr-2" />
+              <Play className="w-3.5 h-3.5 text-purple-400 mr-2" />
             </div>
           ))}
         </div>
@@ -421,23 +367,23 @@ export const DVLibrary = ({
 
       {/* SUB-TAB 4: FOLDERS */}
       {subTab === 'folders' && (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {foldersGrouped.map(({ folder, tracks: folderTracks }) => (
             <div
               key={folder}
               onClick={() => onSelectTrack(folderTracks[0])}
-              className="p-3 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition flex items-center justify-between"
+              className="p-2.5 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 hover:border-purple-500/40 cursor-pointer transition flex items-center justify-between active:scale-[0.99]"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
-                  <Folder className="w-5 h-5" />
+                <div className="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
+                  <Folder className="w-4 h-4" />
                 </div>
                 <div className="truncate max-w-[200px] sm:max-w-md">
                   <h3 className="text-xs font-semibold text-white truncate">{folder}</h3>
-                  <p className="text-[11px] text-purple-300/60">{folderTracks.length} Audio Files</p>
+                  <p className="text-[10px] text-purple-300/60">{folderTracks.length} Audio Files</p>
                 </div>
               </div>
-              <Play className="w-4 h-4 text-purple-400 mr-2 shrink-0" />
+              <Play className="w-3.5 h-3.5 text-purple-400 mr-2 shrink-0" />
             </div>
           ))}
         </div>
@@ -445,62 +391,56 @@ export const DVLibrary = ({
 
       {/* SUB-TAB 5: PLAYLISTS */}
       {subTab === 'playlists' && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-purple-300/70">
-              Your Playlists ({playlists.length})
+              Playlists ({playlists.length})
             </span>
             <button
               onClick={() => setShowNewPlaylistModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-purple-900/50 hover:bg-purple-500 transition active:scale-95"
+              className="px-2.5 py-1 rounded-xl bg-purple-600 text-white text-xs font-semibold flex items-center gap-1 shadow-md shadow-purple-900/50 hover:bg-purple-500 transition active:scale-95"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>New Playlist</span>
+              <Plus className="w-3 h-3" />
+              <span>New</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {playlists.map((pl) => (
               <div
                 key={pl.id}
-                className="p-3.5 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 flex items-center justify-between group hover:border-purple-500/40 transition"
+                className="p-3 rounded-2xl bg-[#140b26]/70 border border-purple-900/30 flex items-center justify-between group hover:border-purple-500/40 transition"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-800 to-indigo-700 flex items-center justify-center shadow-md">
-                    <ListMusic className="w-5 h-5 text-white" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-800 to-indigo-700 flex items-center justify-center shadow-md">
+                    <ListMusic className="w-4 h-4 text-white" />
                   </div>
                   <div>
                     <h4 className="text-xs font-semibold text-white">{pl.name}</h4>
-                    <p className="text-[11px] text-purple-300/60">{pl.trackIds.length} Songs</p>
+                    <p className="text-[10px] text-purple-300/60">{pl.trackIds.length} Songs</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => {
                       const first = tracks.find((t) => pl.trackIds.includes(t.id));
                       if (first) onSelectTrack(first);
                     }}
-                    className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-purple-600 text-white flex items-center justify-center transition"
-                    title="Play Playlist"
+                    className="w-7 h-7 rounded-full bg-white/5 group-hover:bg-purple-600 text-white flex items-center justify-center transition active:scale-90"
+                    title="Play"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                    <Play className="w-3 h-3 fill-current ml-0.5" />
                   </button>
                   <button
                     onClick={() => setPlaylists((prev) => prev.filter((p) => p.id !== pl.id))}
-                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-red-600/40 text-neutral-400 hover:text-red-300 flex items-center justify-center transition"
-                    title="Delete Playlist"
+                    className="w-7 h-7 rounded-full bg-white/5 hover:bg-red-600/40 text-neutral-400 hover:text-red-300 flex items-center justify-center transition active:scale-90"
+                    title="Delete"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               </div>
             ))}
-
-            {playlists.length === 0 && (
-              <div className="col-span-full py-12 text-center text-xs text-purple-300/60">
-                No custom playlists yet. Tap &quot;New Playlist&quot; to build your first collection.
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -510,29 +450,29 @@ export const DVLibrary = ({
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
           <form
             onSubmit={handleCreatePlaylist}
-            className="w-full max-w-sm rounded-3xl bg-[#110722] border border-purple-500/30 p-5 space-y-4 shadow-2xl"
+            className="w-full max-w-sm rounded-3xl bg-[#110722] border border-purple-500/30 p-4 space-y-3 shadow-2xl"
           >
-            <h3 className="text-sm font-bold text-white">Create New Playlist</h3>
+            <h3 className="text-xs font-bold text-white">Create Playlist</h3>
             <input
               type="text"
               autoFocus
-              placeholder="e.g. Chill Bass Night"
+              placeholder="Playlist name"
               value={newPlaylistName}
               onChange={(e) => setNewPlaylistName(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-purple-500/30 text-xs text-white placeholder-purple-300/40 focus:outline-none focus:border-purple-400"
+              className="w-full px-3 py-2 rounded-xl bg-black/40 border border-purple-500/30 text-xs text-white placeholder-purple-300/40 focus:outline-none focus:border-purple-400"
             />
             <div className="flex gap-2 justify-end">
               <button
                 type="button"
                 onClick={() => setShowNewPlaylistModal(false)}
-                className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-purple-200"
+                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-purple-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!newPlaylistName.trim()}
-                className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white shadow-md disabled:opacity-50"
+                className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white shadow-md disabled:opacity-50"
               >
                 Create
               </button>
@@ -544,11 +484,11 @@ export const DVLibrary = ({
       {/* Add Track to Playlist Picker Modal */}
       {trackToAddToPlaylist && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#110722] border border-purple-500/30 p-5 space-y-4 shadow-2xl">
+          <div className="w-full max-w-sm rounded-3xl bg-[#110722] border border-purple-500/30 p-4 space-y-3 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white">Add to Playlist</h3>
-                <p className="text-[11px] text-purple-300/70 truncate max-w-[240px]">
+                <h3 className="text-xs font-bold text-white">Add to Playlist</h3>
+                <p className="text-[10px] text-purple-300/70 truncate max-w-[200px]">
                   {trackToAddToPlaylist.title}
                 </p>
               </div>
@@ -560,7 +500,7 @@ export const DVLibrary = ({
               </button>
             </div>
 
-            <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto">
+            <div className="flex flex-col gap-1 max-h-52 overflow-y-auto">
               {playlists.map((pl) => {
                 const alreadyIn = pl.trackIds.includes(trackToAddToPlaylist.id);
                 return (
@@ -576,37 +516,20 @@ export const DVLibrary = ({
                       }
                       setTrackToAddToPlaylist(null);
                     }}
-                    className={`p-3 rounded-xl flex items-center justify-between text-left transition ${
+                    className={`p-2.5 rounded-xl flex items-center justify-between text-left transition ${
                       alreadyIn
                         ? 'bg-purple-950/30 text-purple-300/50 cursor-default'
                         : 'bg-white/5 hover:bg-purple-600/30 text-white'
                     }`}
                   >
                     <span className="text-xs font-medium">{pl.name}</span>
-                    <span className="text-[10px] text-purple-300/60">
+                    <span className="text-[9px] text-purple-300/60">
                       {alreadyIn ? 'Added' : `${pl.trackIds.length} tracks`}
                     </span>
                   </button>
                 );
               })}
-
-              {playlists.length === 0 && (
-                <div className="py-4 text-center text-xs text-purple-300/60">
-                  No playlists yet. Create one in the Playlists tab!
-                </div>
-              )}
             </div>
-
-            <button
-              onClick={() => {
-                setTrackToAddToPlaylist(null);
-                setShowNewPlaylistModal(true);
-              }}
-              className="w-full py-2 rounded-xl bg-purple-600/30 border border-purple-500/30 text-xs font-semibold text-purple-200 hover:bg-purple-600/50 flex items-center justify-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create New Playlist</span>
-            </button>
           </div>
         </div>
       )}
