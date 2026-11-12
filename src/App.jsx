@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { audioEngine } from './audio/audioEngine';
 import { generateDemoTrack, extractWaveformFromFile, parseAudioFilename } from './audio/syntheticTracks';
+import { mediaSessionController } from './audio/mediaSession';
+import { loadTracksFromStorage, saveTracksToStorage } from './audio/trackStorage';
 import { DVNowPlaying } from './components/DVNowPlaying';
 import { DVLibrary } from './components/DVLibrary';
 import { DVEqualizerTab } from './components/DVEqualizerTab';
@@ -120,7 +122,25 @@ export default function App() {
         };
       }
 
-      // Initialize with offline demo track "Dreams" by Lost Sky
+      // 1. Try loading persistent tracks from IndexedDB first!
+      try {
+        const storedTracks = await loadTracksFromStorage();
+        if (isMounted && storedTracks.length > 0) {
+          setTracks(storedTracks);
+          setCurrentTrack(storedTracks[0]);
+          currentTrackRef.current = storedTracks[0];
+          setDuration(storedTracks[0].duration || 180);
+          audioEngine.loadTrack(storedTracks[0].url);
+          audioEngine.setTenBandEq(eqBands);
+          audioEngine.setEffectPreset(activeEffect, effectsEnabled);
+          mediaSessionController.updateMetadata(storedTracks[0]);
+          return;
+        }
+      } catch (err) {
+        console.warn('Persistent storage notice:', err);
+      }
+
+      // 2. Fallback to initial offline demo track "Dreams" by Lost Sky
       try {
         const dreamsTrack = await generateDemoTrack('dreams', ctx);
         if (isMounted) {
@@ -133,6 +153,7 @@ export default function App() {
           if (audioEl) audioEl.loop = true;
           audioEngine.setTenBandEq(eqBands);
           audioEngine.setEffectPreset(activeEffect, effectsEnabled);
+          mediaSessionController.updateMetadata(dreamsTrack);
         }
       } catch (err) {
         console.warn('Initial track synthesis notice:', err);
@@ -162,6 +183,42 @@ export default function App() {
     }, 60000);
     return () => clearInterval(interval);
   }, [sleepTimerMinutes]);
+
+  // Set up MediaSession action handlers for native Android notification bar & background audio
+  useEffect(() => {
+    mediaSessionController.setHandlers({
+      onPlay: () => {
+        audioEngine.resume();
+        audioEngine.play().catch(() => {});
+        setIsPlaying(true);
+      },
+      onPause: () => {
+        audioEngine.pause();
+        setIsPlaying(false);
+      },
+      onNext: handleNextTrack,
+      onPrev: handlePrevTrack,
+      onSeek: handleSeek,
+    });
+  }, [tracks, currentTrack, repeatMode, isShuffle]);
+
+  useEffect(() => {
+    if (currentTrack) {
+      mediaSessionController.updateMetadata(currentTrack);
+    }
+  }, [currentTrack]);
+
+  useEffect(() => {
+    mediaSessionController.setPlaybackState(isPlaying);
+  }, [isPlaying]);
+
+  useEffect(() => {
+    mediaSessionController.updatePositionState({
+      duration,
+      playbackRate,
+      position: currentTime,
+    });
+  }, [currentTime, duration, playbackRate]);
 
   // Transport handlers
   const handlePlayToggle = () => {
@@ -213,6 +270,9 @@ export default function App() {
     }
 
     audioEngine.loadTrack(track.url);
+    mediaSessionController.updateMetadata(track);
+    mediaSessionController.setPlaybackState(true);
+
     setTimeout(() => {
       audioEngine.play().catch(() => {});
     }, 80);
@@ -353,10 +413,12 @@ export default function App() {
         source: 'local',
         waveformPeaks: peaks,
         isFavorite: false,
+        audioBlob: file, // Store Blob for IndexedDB permanent persistence
       });
     }
 
     if (newTracks.length > 0) {
+      await saveTracksToStorage(newTracks);
       setTracks((prev) => [...newTracks, ...prev]);
       handleSelectTrack(newTracks[0]);
       setActiveDestination('home');

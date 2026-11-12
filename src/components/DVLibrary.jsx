@@ -11,16 +11,23 @@ import {
   User,
   Disc,
   FolderTree,
-  Plus,
   ListPlus,
   X,
   Sparkles,
   Check,
-  MoreVertical,
+  RotateCw,
+  ShieldCheck,
+  HardDrive,
 } from 'lucide-react';
 import { extractWaveformFromFile, parseAudioFilename } from '../audio/syntheticTracks';
 import { audioEngine } from '../audio/audioEngine';
 import { DVAlbumArt } from './DVAlbumArt';
+import {
+  checkStoragePermissionGranted,
+  setStoragePermissionGranted,
+  saveTracksToStorage,
+  deleteTrackFromStorage,
+} from '../audio/trackStorage';
 
 /* ── Live Animated EQ wave bars for active track ── */
 const EQBars = () => (
@@ -49,8 +56,11 @@ export const DVLibrary = ({
   const fileInputRef = useRef(null);
   const [subTab, setSubTab] = useState('songs');
   const [searchQuery, setSearchQuery] = useState('');
+  const [hasPermission, setHasPermission] = useState(true);
+  const [showPermissionDialog, setShowPermissionDialog] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
-  /* ── Counting Slide Animation State for Imported Music ── */
+  /* ── Counting Slide Animation State for Discovered/Scanned Music ── */
   const [importNotification, setImportNotification] = useState(null);
 
   /* ── User Playlists ── */
@@ -73,14 +83,28 @@ export const DVLibrary = ({
   const [showNewPlaylistModal, setShowNewPlaylistModal] = useState(false);
   const [trackToAddToPlaylist, setTrackToAddToPlaylist] = useState(null);
 
-  /* ── Audio File Import with Counting Slide Animation ── */
+  /* ── Check storage permission on mount ── */
+  useEffect(() => {
+    const checkPerm = async () => {
+      const granted = await checkStoragePermissionGranted();
+      if (!granted && tracks.length <= 1) {
+        setHasPermission(false);
+        setShowPermissionDialog(true);
+      } else {
+        setHasPermission(true);
+      }
+    };
+    checkPerm();
+  }, [tracks.length]);
+
+  /* ── Auto-scan files and store permanently in IndexedDB ── */
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
+    setIsScanning(true);
     const audioCtx = audioEngine.getAudioContext();
     const newTracks = [];
 
     const totalCount = files.length;
-    // Trigger the slide-down animation banner
     setImportNotification({ total: totalCount, current: 0, visible: true });
 
     for (let i = 0; i < files.length; i++) {
@@ -96,7 +120,7 @@ export const DVLibrary = ({
       const { title, artist, album, format } = parseAudioFilename(file.name);
       const { peaks, duration } = await extractWaveformFromFile(file, audioCtx);
 
-      newTracks.push({
+      const trackObj = {
         id: `local-${Date.now()}-${i}`,
         title,
         artist,
@@ -113,22 +137,35 @@ export const DVLibrary = ({
         source: 'local',
         waveformPeaks: peaks,
         isFavorite: false,
-      });
+        audioBlob: file, // Keep the Blob so it permanently survives app restart!
+      };
 
-      // Update counter live with a smooth step
+      newTracks.push(trackObj);
       setImportNotification((prev) => (prev ? { ...prev, current: i + 1 } : null));
     }
 
     if (newTracks.length > 0) {
+      // Save permanently to IndexedDB
+      await saveTracksToStorage(newTracks);
       onAddTracks(newTracks);
       onSelectTrack(newTracks[0]);
     }
 
-    // Slide out smoothly after 3.2 seconds
+    setIsScanning(false);
+
+    // Slide out notification after 3.2 seconds
     setTimeout(() => {
       setImportNotification((prev) => (prev ? { ...prev, visible: false } : null));
       setTimeout(() => setImportNotification(null), 500);
     }, 3200);
+  };
+
+  const handleGrantPermission = async () => {
+    await setStoragePermissionGranted(true);
+    setHasPermission(true);
+    setShowPermissionDialog(false);
+    // Open file selector/scanner automatically to sync all songs on phone
+    fileInputRef.current?.click();
   };
 
   const formatTime = (sec) => {
@@ -212,6 +249,11 @@ export const DVLibrary = ({
     setPlaylists((prev) => prev.filter((p) => p.id !== playlistId));
   };
 
+  const handleDeleteTrack = async (trackId) => {
+    await deleteTrackFromStorage(trackId);
+    onRemoveTrack(trackId);
+  };
+
   const TABS = [
     { id: 'songs', label: 'Songs', icon: Music },
     { id: 'albums', label: 'Albums', icon: Disc },
@@ -233,21 +275,21 @@ export const DVLibrary = ({
           }`}
         >
           <div className="bg-[#120726]/95 border border-purple-400/50 rounded-2xl p-3 shadow-[0_12px_40px_rgba(168,85,247,0.5)] backdrop-blur-2xl flex items-center justify-between gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-fuchsia-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-md">
-              <Sparkles className="w-5 h-5 text-white animate-pulse" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-fuchsia-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-md">
+              <Sparkles className="w-4 h-4 text-white animate-pulse" />
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline justify-between">
                 <span className="text-xs font-bold text-white tracking-tight">
-                  Importing Local Music
+                  Indexing Storage Music
                 </span>
                 <span className="text-xs font-mono font-bold text-purple-300">
                   +{importNotification.current} of {importNotification.total}
                 </span>
               </div>
 
-              {/* Counting progress bar fill */}
+              {/* Progress bar */}
               <div className="w-full h-1.5 bg-white/10 rounded-full mt-1.5 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-purple-400 via-fuchsia-400 to-indigo-400 rounded-full transition-all duration-300"
@@ -262,19 +304,19 @@ export const DVLibrary = ({
             </div>
 
             <div className="px-2 py-0.5 rounded-full bg-purple-900/60 border border-purple-400/30 text-[9px] font-mono text-purple-200 font-bold shrink-0">
-              {importNotification.current === importNotification.total ? 'COMPLETE' : 'PARSING'}
+              {importNotification.current === importNotification.total ? 'SAVED' : 'SYNCING'}
             </div>
           </div>
         </div>
       )}
 
-      {/* ── SEARCH & IMPORT BAR (Mobile-First Header) ── */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/6 shrink-0 bg-[#080312]/60 backdrop-blur-md">
+      {/* ── SEARCH & STORAGE SYNC HEADER (NO MANUAL IMPORT BUTTON) ── */}
+      <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-white/6 shrink-0 bg-[#080312]/60 backdrop-blur-md">
         <div className="relative flex-1">
           <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search songs, artists…"
+            placeholder="Search all music…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white/5 border border-white/8 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-purple-400/60 transition-colors"
@@ -289,18 +331,17 @@ export const DVLibrary = ({
           )}
         </div>
 
-        {/* Universal Import + Button */}
+        {/* Sync/Refresh Storage Button */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/30 border border-purple-500/50 text-purple-200 text-xs font-semibold active:scale-95 transition-all hover:bg-purple-600/50 shrink-0 shadow-sm"
-          title="Import Audio Files from Device"
+          className="p-2 rounded-xl bg-white/5 border border-white/8 text-neutral-300 hover:text-white active:scale-95 transition-all shrink-0"
+          title="Rescan Device Storage for New Tracks"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span className="text-[11px]">Add Music</span>
+          <RotateCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin text-purple-400' : ''}`} />
         </button>
       </div>
 
-      {/* Hidden universal file input */}
+      {/* Hidden file input invoked on permission grant and rescan */}
       <input
         type="file"
         ref={fileInputRef}
@@ -385,7 +426,7 @@ export const DVLibrary = ({
                     </div>
                   </div>
 
-                  {/* Right Side: Duration, Heart, Menu */}
+                  {/* Right Side: Duration, Heart, Playlist, Delete */}
                   <div
                     className="flex items-center gap-1 shrink-0"
                     onClick={(e) => e.stopPropagation()}
@@ -415,7 +456,7 @@ export const DVLibrary = ({
                     </button>
 
                     <button
-                      onClick={() => onRemoveTrack(track.id)}
+                      onClick={() => handleDeleteTrack(track.id)}
                       className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 transition-colors"
                       title="Remove Track"
                     >
@@ -432,19 +473,19 @@ export const DVLibrary = ({
                   <Music2 className="w-7 h-7" />
                 </div>
                 <h4 className="text-sm font-semibold text-white">
-                  {subTab === 'favorites' ? 'No Favorites Saved' : 'No Music Found'}
+                  {subTab === 'favorites' ? 'No Favorites Saved' : 'No Music Detected'}
                 </h4>
                 <p className="text-xs text-neutral-400 max-w-xs">
                   {subTab === 'favorites'
-                    ? 'Tap the heart icon on any song to save it to your favorites list.'
-                    : 'Import your favorite MP3, WAV, FLAC, or AAC files directly from your device storage.'}
+                    ? 'Tap the heart icon on any song to save it to your favorites.'
+                    : 'Tap Rescan Storage above to index all audio files from your device.'}
                 </p>
                 {subTab !== 'favorites' && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="mt-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold shadow-[0_0_15px_rgba(168,85,247,0.4)] active:scale-95 transition-all"
                   >
-                    Select Audio Files
+                    Scan Device Storage
                   </button>
                 )}
               </div>
@@ -553,7 +594,6 @@ export const DVLibrary = ({
                 onClick={() => setShowNewPlaylistModal(true)}
                 className="px-2.5 py-1 rounded-xl bg-purple-600/30 border border-purple-500/50 text-purple-300 text-xs font-semibold flex items-center gap-1 hover:bg-purple-600/50 transition-all active:scale-95"
               >
-                <Plus className="w-3 h-3" />
                 New Playlist
               </button>
             </div>
@@ -609,6 +649,46 @@ export const DVLibrary = ({
           </div>
         )}
       </div>
+
+      {/* ── ANDROID FIRST-LAUNCH STORAGE PERMISSION MODAL ── */}
+      {showPermissionDialog && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-[#0e071c] border border-purple-500/40 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-purple-600/25 border border-purple-400/40 flex items-center justify-center text-purple-300 mx-auto shadow-lg shadow-purple-950/60">
+              <HardDrive className="w-7 h-7" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Storage Access Permission
+              </h3>
+              <p className="text-xs text-neutral-300 mt-1.5 leading-relaxed">
+                Allow DV Music to access audio files on your phone to automatically load all your music into your library.
+              </p>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-white/4 border border-white/8 text-[11px] text-neutral-400 text-left flex items-start gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span>100% Offline & Private. Music files stay safely stored on your device and are never deleted.</span>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                onClick={handleGrantPermission}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold shadow-[0_0_20px_rgba(168,85,247,0.5)] active:scale-95 transition-all"
+              >
+                Allow Storage Access & Scan Music
+              </button>
+              <button
+                onClick={() => setShowPermissionDialog(false)}
+                className="w-full py-2.5 rounded-2xl bg-transparent text-neutral-400 text-xs font-medium hover:text-white"
+              >
+                Not Now (Use Offline Demo)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── CREATE PLAYLIST MODAL ── */}
       {showNewPlaylistModal && (
