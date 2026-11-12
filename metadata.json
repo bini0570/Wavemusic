@@ -1,0 +1,6 @@
+{
+  "name": "DV Music - Feel the Music...",
+  "description": "DV Music mobile player with real-time neon spectrum visualizer, 8D audio binaural spatializer, 10-band equalizer, audio effects, and local music file playback.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

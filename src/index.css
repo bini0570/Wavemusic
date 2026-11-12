@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Custom DJ hardware styling */
+.hardware-plate {
+  background: radial-gradient(circle at 50% 0%, #1f2228 0%, #121316 70%, #0c0d0f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+}
+
+.jog-wheel-grooves {
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    #181a1f 0px,
+    #181a1f 2px,
+    #242730 3px,
+    #181a1f 4px
+  );
+}
+
+.brushed-metal {
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.4) 100%), #141519;
+}
+
+/* Custom scrollbars for crate/playlist */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1013;
+}
+::-webkit-scrollbar-thumb {
+  background: #272a33;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3f4d;
+}
