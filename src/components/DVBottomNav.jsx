@@ -1,11 +1,12 @@
 import React from 'react';
-import { Home, Music2, BarChart2, Settings } from 'lucide-react';
+import { Home, Music2, BarChart2, Settings, Sliders } from 'lucide-react';
 
 export const DVBottomNav = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'home', label: 'Home', icon: Home },
+    { id: 'home', label: 'Now Playing', icon: Home },
     { id: 'library', label: 'Library', icon: Music2 },
-    { id: 'equalizer', label: 'Equalizer', icon: BarChart2 },
+    { id: 'studio', label: 'Studio', icon: Sliders },
+    { id: 'equalizer', label: 'EQ Lab', icon: BarChart2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -18,7 +19,7 @@ export const DVBottomNav = ({ activeTab, onTabChange }) => {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex flex-col items-center justify-center gap-1 py-1 px-3 min-w-[56px] transition-all relative ${
+            className={`flex flex-col items-center justify-center gap-1 py-1 px-1.5 min-w-0 flex-1 transition-all relative ${
               isActive
                 ? 'text-purple-300 font-semibold scale-105'
                 : 'text-neutral-400 hover:text-neutral-200'
@@ -31,7 +32,7 @@ export const DVBottomNav = ({ activeTab, onTabChange }) => {
 
             <div className="relative">
               <Icon
-                className={`w-5 h-5 transition-transform ${
+                className={`w-4 h-4 transition-transform ${
                   isActive
                     ? 'text-purple-300 stroke-[2.2px] drop-shadow-[0_0_8px_rgba(192,132,252,0.85)]'
                     : 'stroke-[1.8px]'
@@ -39,7 +40,7 @@ export const DVBottomNav = ({ activeTab, onTabChange }) => {
               />
             </div>
             <span
-              className={`text-[10px] tracking-tight truncate ${
+              className={`text-[9px] tracking-tight truncate ${
                 isActive ? 'text-purple-200 font-medium' : 'text-neutral-400'
               }`}
             >

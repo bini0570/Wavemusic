@@ -58,17 +58,17 @@ export const DVEffectsCard = ({
   ];
 
   const bandsConfig = [
-    { key: 'b60', label: '60' },
-    { key: 'b170', label: '170' },
-    { key: 'b310', label: '310' },
-    { key: 'b600', label: '600' },
-    { key: 'b1k', label: '1k' },
-    { key: 'b3k', label: '3k' },
-    { key: 'b6k', label: '6k' },
-    { key: 'b8k', label: '8k' },
-    { key: 'b12k', label: '12k' },
-    { key: 'b14k', label: '14k' },
-    { key: 'b16k', label: '16k' },
+    { key: 'b60', label: '60', accent: '#a855f7' },
+    { key: 'b170', label: '170', accent: '#a855f7' },
+    { key: 'b310', label: '310', accent: '#a855f7' },
+    { key: 'b600', label: '600', accent: '#3b82f6' },
+    { key: 'b1k', label: '1k', accent: '#3b82f6' },
+    { key: 'b3k', label: '3k', accent: '#22d3ee' },
+    { key: 'b6k', label: '6k', accent: '#22d3ee' },
+    { key: 'b8k', label: '8k', accent: '#ec4899' },
+    { key: 'b12k', label: '12k', accent: '#ec4899' },
+    { key: 'b14k', label: '14k', accent: '#ec4899' },
+    { key: 'b16k', label: '16k', accent: '#ec4899' },
   ];
 
   return (
@@ -188,17 +188,22 @@ export const DVEffectsCard = ({
                   <div className="relative w-full h-24 flex items-center justify-center">
                     <div className="w-1.5 h-full bg-[#231542] rounded-full relative overflow-hidden">
                       <div
-                        className="w-full bg-gradient-to-t from-indigo-500 to-purple-400 absolute left-0"
+                        className="w-full absolute left-0"
                         style={{
                           bottom: val >= 0 ? '50%' : `${percent}%`,
                           top: val >= 0 ? `${100 - percent}%` : '50%',
+                          background: band.accent,
+                          opacity: 0.85,
                         }}
                       />
                     </div>
 
                     <div
-                      className="absolute w-3 h-3 rounded-full bg-white shadow-[0_0_8px_rgba(192,132,252,0.8)] border border-purple-400 pointer-events-none transition-all"
-                      style={{ bottom: `calc(${percent}% - 6px)` }}
+                      className="absolute w-3 h-3 rounded-full bg-white pointer-events-none transition-all"
+                      style={{
+                        bottom: `calc(${percent}% - 6px)`,
+                        boxShadow: `0 0 8px ${band.accent}cc, 0 0 0 2px ${band.accent}66`,
+                      }}
                     />
 
                     <input
@@ -209,12 +214,12 @@ export const DVEffectsCard = ({
                       value={val}
                       onChange={(e) => onBandChange(band.key, parseFloat(e.target.value))}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      style={{ writingMode: 'vertical-lr', direction: 'rtl' }}
+                      style={{ writingMode: 'vertical-lr', direction: 'rtl', accentColor: band.accent }}
                     />
                   </div>
 
                   {/* Frequency Label */}
-                  <span className="text-[8px] font-mono text-neutral-400 pt-0.5 text-center leading-none">
+                  <span className="text-[8px] font-mono pt-0.5 text-center leading-none" style={{ color: band.accent, opacity: 0.8 }}>
                     {band.label}
                   </span>
                 </div>

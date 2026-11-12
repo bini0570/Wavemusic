@@ -30,15 +30,12 @@ export const DVSettingsTab = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none text-xs max-w-2xl mx-auto">
+    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none text-xs max-w-2xl mx-auto tab-enter">
       {/* Header */}
       <div className="flex items-center justify-between py-1">
         <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
           Settings
         </h2>
-        <span className="px-2 py-0.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-[9px] font-mono text-purple-300">
-          v3.5.0 OFFLINE
-        </span>
       </div>
 
       {/* 1. Sleep Timer Card */}
@@ -168,6 +165,12 @@ export const DVSettingsTab = ({
         >
           {cacheCleared ? 'Cleared' : 'Reset'}
         </button>
+      </div>
+      {/* Version Footer */}
+      <div className="flex items-center justify-center pt-2 pb-1">
+        <span className="px-2 py-0.5 rounded-full bg-purple-950/40 border border-purple-500/20 text-[9px] font-mono text-purple-400/60">
+          DV Music v3.5.0 · Offline
+        </span>
       </div>
     </div>
   );

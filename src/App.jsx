@@ -5,6 +5,7 @@ import { DVNowPlaying } from './components/DVNowPlaying';
 import { DVLibrary } from './components/DVLibrary';
 import { DVEqualizerTab } from './components/DVEqualizerTab';
 import { DVSettingsTab } from './components/DVSettingsTab';
+import { DVStudioTab } from './components/DVStudioTab';
 import { DVMiniPlayer } from './components/DVMiniPlayer';
 import { DVBottomNav } from './components/DVBottomNav';
 
@@ -17,7 +18,7 @@ export default function App() {
   const [duration, setDuration] = useState(64);
   const [masterVolume, setMasterVolume] = useState(0.9);
 
-  // 4 Offline Destinations: 'home' | 'library' | 'equalizer' | 'settings'
+  // 4 Offline Destinations: 'home' | 'library' | 'studio' | 'equalizer' | 'settings'
   const [activeDestination, setActiveDestination] = useState('home');
 
   // Visualizer Mode
@@ -35,6 +36,11 @@ export default function App() {
   const [eightDSpeed, setEightDSpeed] = useState(8.0);
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState(null);
 
+  // Studio Tab State
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [reverbDepth, setReverbDepth] = useState(0);
+  const [compressorThreshold, setCompressorThreshold] = useState(-24);
+
   // 10-Band EQ initial values
   const [eqBands, setEqBands] = useState({
     b60: 1.5,
@@ -51,6 +57,20 @@ export default function App() {
   });
 
   const hiddenFileInputRef = useRef(null);
+
+  // Studio handlers
+  const handlePlaybackRateChange = (rate) => {
+    setPlaybackRate(rate);
+    audioEngine.setPlaybackRate(rate);
+  };
+  const handleReverbDepthChange = (wet) => {
+    setReverbDepth(wet);
+    audioEngine.setReverbDepth(wet);
+  };
+  const handleCompressorThresholdChange = (db) => {
+    setCompressorThreshold(db);
+    audioEngine.setCompressorThreshold(db);
+  };
 
   // Initialize Web Audio Engine & initial offline demo track
   useEffect(() => {
@@ -360,7 +380,7 @@ export default function App() {
       <main className="flex-1 w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl flex flex-col overflow-hidden relative">
         {/* DESTINATION 1: HOME (NOW PLAYING) */}
         {activeDestination === 'home' && (
-          <div className="w-full h-full flex flex-col justify-between overflow-y-auto pb-16 scrollbar-none">
+          <div className="w-full h-full flex flex-col justify-between overflow-y-auto pb-16 scrollbar-none tab-enter">
             <DVNowPlaying
               currentTrack={currentTrack}
               isPlaying={isPlaying}
@@ -390,7 +410,7 @@ export default function App() {
 
         {/* DESTINATION 2: LIBRARY */}
         {activeDestination === 'library' && (
-          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none">
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
             <DVLibrary
               tracks={tracks}
               currentTrackId={currentTrack?.id || null}
@@ -411,9 +431,28 @@ export default function App() {
           </div>
         )}
 
-        {/* DESTINATION 3: EQUALIZER */}
+        {/* DESTINATION 3: STUDIO */}
+        {activeDestination === 'studio' && (
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
+            <DVStudioTab
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              playbackRate={playbackRate}
+              onPlaybackRateChange={handlePlaybackRateChange}
+              reverbDepth={reverbDepth}
+              onReverbDepthChange={handleReverbDepthChange}
+              compressorThreshold={compressorThreshold}
+              onCompressorThresholdChange={handleCompressorThresholdChange}
+              currentTime={currentTime}
+              duration={duration}
+              onSeek={handleSeek}
+            />
+          </div>
+        )}
+
+        {/* DESTINATION 4: EQUALIZER */}
         {activeDestination === 'equalizer' && (
-          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none">
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
             <DVEqualizerTab
               effectsEnabled={effectsEnabled}
               onToggleEffects={handleToggleEffects}
@@ -430,9 +469,9 @@ export default function App() {
           </div>
         )}
 
-        {/* DESTINATION 4: SETTINGS */}
+        {/* DESTINATION 5: SETTINGS */}
         {activeDestination === 'settings' && (
-          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none">
+          <div className="w-full h-full overflow-y-auto pb-28 scrollbar-none tab-enter">
             <DVSettingsTab
               sleepTimerMinutes={sleepTimerMinutes}
               onSetSleepTimer={setSleepTimerMinutes}

@@ -156,7 +156,7 @@ export const DVLibrary = ({
   };
 
   return (
-    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none text-white max-w-2xl mx-auto">
+    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none text-white max-w-2xl mx-auto tab-enter">
       {/* Header & Search Bar with Add Button */}
       <div className="flex items-center gap-2 pt-1">
         <div className="relative flex-1">
@@ -206,10 +206,10 @@ export const DVLibrary = ({
             <button
               key={tab.id}
               onClick={() => setSubTab(tab.id)}
-              className={`px-3 py-1.5 rounded-full font-medium whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 ${
+              className={`px-3 py-1.5 font-medium whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 border-b-2 -mb-[1px] rounded-none ${
                 isActive
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-950 font-semibold'
-                  : 'bg-white/5 text-purple-300/70 hover:bg-white/10 hover:text-white'
+                  ? 'border-purple-400 text-purple-300 font-semibold'
+                  : 'border-transparent text-purple-300/50 hover:text-purple-200 hover:border-purple-500/40'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />

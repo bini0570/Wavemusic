@@ -93,19 +93,9 @@ export const DVNowPlaying = ({
   ];
 
   return (
-    <div className="w-full flex flex-col justify-between px-4 sm:px-6 pt-1 pb-2 select-none text-white max-w-md mx-auto">
+    <div className="w-full flex flex-col justify-between px-4 sm:px-6 pt-1 pb-2 select-none text-white max-w-md mx-auto tab-enter">
       {/* 1. TOP APP BAR */}
-      <div className="flex items-center justify-between py-1 shrink-0">
-        {/* Brand Lockup */}
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-600 to-fuchsia-500 flex items-center justify-center shadow-[0_0_12px_rgba(168,85,247,0.7)]">
-            <Play className="w-3.5 h-3.5 text-white fill-white ml-0.5" />
-          </div>
-          <h1 className="text-sm font-bold tracking-wide text-white leading-tight font-sans">
-            DV Music
-          </h1>
-        </div>
-
+      <div className="flex items-center justify-end py-1 shrink-0">
         {/* Right Tools: 32-Bit DSP spec badge & Vinyl Toggle */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-950/60 border border-purple-500/30 text-[9px] font-mono text-purple-300">
@@ -129,6 +119,10 @@ export const DVNowPlaying = ({
 
       {/* 2. ARTWORK CARD / ROTATING VINYL DISC */}
       <div className="relative w-full flex items-center justify-center my-2 shrink-0">
+        {/* Blurred album art backdrop */}
+        <div className="absolute inset-0 -mx-4 overflow-hidden opacity-30 pointer-events-none">
+          <DVAlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" className="w-full h-full object-cover scale-110 blur-3xl" />
+        </div>
         {/* Ambient Purple Glow */}
         <div className={`absolute w-52 h-52 sm:w-64 sm:h-64 bg-purple-600/25 rounded-full blur-2xl pointer-events-none -z-10 ${isPlaying ? 'animate-neon-pulse' : 'opacity-20'}`} />
 
@@ -327,7 +321,7 @@ export const DVNowPlaying = ({
       </div>
 
       {/* 7. QUICK AUDIO EFFECTS CAPSULES STRIP */}
-      <div className="w-full bg-[#110724]/90 border border-purple-500/20 rounded-2xl p-2 shadow-xl backdrop-blur-xl shrink-0 my-1">
+      <div className="w-full glass-card rounded-2xl p-2 my-1 shadow-xl shrink-0">
         <div className="grid grid-cols-5 gap-1.5 items-center">
           {quickEffects.map((effect) => {
             const isSelected = activeEffect === effect.id && effectsEnabled;

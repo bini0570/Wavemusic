@@ -23,7 +23,7 @@ export const DVEqualizerTab = ({
   const orbY = Math.sin(rad) * radius;
 
   return (
-    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none max-w-2xl mx-auto">
+    <div className="w-full flex flex-col gap-3 px-4 sm:px-6 pt-2 pb-24 select-none max-w-2xl mx-auto tab-enter">
       {/* Header */}
       <div className="flex items-center justify-between py-1">
         <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
@@ -53,16 +53,6 @@ export const DVEqualizerTab = ({
               8D Spatial Audio Radar
             </h3>
           </div>
-          <button
-            onClick={() => onSelectEffect('8d')}
-            className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all active:scale-95 ${
-              activeEffect === '8d' && effectsEnabled
-                ? 'bg-purple-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.5)] font-bold'
-                : 'bg-neutral-800/80 text-neutral-400 hover:text-white'
-            }`}
-          >
-            {activeEffect === '8d' && effectsEnabled ? '8D ACTIVE' : 'ENABLE 8D'}
-          </button>
         </div>
 
         {/* Radar Circular Stage */}

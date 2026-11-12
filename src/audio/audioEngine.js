@@ -414,6 +414,33 @@ class AudioEngine {
     this.eightDAnimationId = requestAnimationFrame(loop);
   }
 
+  setPlaybackRate(rate) {
+    if (this.audio) {
+      this.audio.playbackRate = Math.max(0.25, Math.min(2.0, rate));
+    }
+  }
+  getPlaybackRate() {
+    return this.audio ? this.audio.playbackRate : 1.0;
+  }
+  setReverbDepth(wet) {
+    if (this.reverbWetGain && this.reverbDryGain && this.ctx) {
+      const t = this.ctx.currentTime;
+      this.reverbWetGain.gain.setTargetAtTime(Math.max(0, Math.min(1, wet)), t, 0.03);
+      this.reverbDryGain.gain.setTargetAtTime(Math.max(0, Math.min(1, 1 - wet * 0.5)), t, 0.03);
+    }
+  }
+  setCompressorThreshold(db) {
+    if (this.compressorNode && this.ctx) {
+      this.compressorNode.threshold.setTargetAtTime(db, this.ctx.currentTime, 0.03);
+    }
+  }
+  setLoopPoints(start, end) {
+    if (this.audio) {
+      this._loopStart = start;
+      this._loopEnd = end;
+    }
+  }
+
   destroy() {
     if (this.eightDAnimationId) cancelAnimationFrame(this.eightDAnimationId);
     if (this.audio) {
