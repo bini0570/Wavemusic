@@ -147,10 +147,10 @@ class AudioEngine {
     this.delayWetGain.connect(this.reverbOutputGain);
     lastNode = this.reverbOutputGain;
 
-    // 4. 8D Audio Binaural Spatializer
+    // 4. 8D Audio Binaural Spatializer (Fast Equalpower model for smooth 60/120fps native performance)
     try {
       this.pannerNode = this.ctx.createPanner();
-      this.pannerNode.panningModel = 'HRTF';
+      this.pannerNode.panningModel = 'equalpower';
       this.pannerNode.distanceModel = 'inverse';
       this.pannerNode.positionX.value = 0;
       this.pannerNode.positionY.value = 0;
@@ -393,12 +393,13 @@ class AudioEngine {
 
   start8DAnimation() {
     let lastTime = performance.now();
+    let lastCallbackTime = 0;
 
     const loop = (now) => {
       const dt = (now - lastTime) / 1000;
       lastTime = now;
 
-      if (this.eightDEnabled && (!this.audio || !this.audio.paused)) {
+      if (this.eightDEnabled && this.audio && !this.audio.paused) {
         const delta = (360 / this.eightDSpeed) * dt;
         this.eightDAngle = (this.eightDAngle + delta) % 360;
 
@@ -413,12 +414,11 @@ class AudioEngine {
           this.stereoPannerNode.pan.setTargetAtTime(x, this.ctx.currentTime, 0.05);
         }
 
-        if (this.onEightDAngleUpdate) {
-          this.onEightDAngleUpdate(this.eightDAngle);
+        // Throttle React state callback to at most 4fps (every 250ms) to prevent 120fps UI lag!
+        if (this.onEightDAngleUpdate && now - lastCallbackTime > 250) {
+          lastCallbackTime = now;
+          this.onEightDAngleUpdate(Math.round(this.eightDAngle));
         }
-      } else if (!this.eightDEnabled && this.pannerNode && this.ctx) {
-        this.pannerNode.positionX.setTargetAtTime(0, this.ctx.currentTime, 0.05);
-        this.pannerNode.positionZ.setTargetAtTime(-1, this.ctx.currentTime, 0.05);
       }
 
       this.eightDAnimationId = requestAnimationFrame(loop);

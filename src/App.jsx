@@ -184,6 +184,67 @@ export default function App() {
     return () => clearInterval(interval);
   }, [sleepTimerMinutes]);
 
+  // Handle audio files opened from external apps (Android Intent / "Open With" chooser)
+  useEffect(() => {
+    let unlisten = null;
+
+    const setupIntentListener = async () => {
+      try {
+        const { App: CapApp } = await import('@capacitor/app');
+        const listener = await CapApp.addListener('appUrlOpen', async (data) => {
+          if (!data?.url) return;
+          try {
+            const res = await fetch(data.url);
+            const blob = await res.blob();
+            const fileName = decodeURIComponent(data.url.split('/').pop() || 'Imported Song.mp3');
+            const file = new File([blob], fileName, { type: blob.type || 'audio/mpeg' });
+
+            const audioCtx = audioEngine.getAudioContext();
+            const { title, artist, album, format } = parseAudioFilename(file.name);
+            const { peaks, duration: fileDur } = await extractWaveformFromFile(file, audioCtx);
+            const trackObj = {
+              id: `intent-${Date.now()}`,
+              title,
+              artist,
+              album,
+              folder: '/Storage/Music',
+              duration: fileDur || 180,
+              bpm: 124,
+              url: URL.createObjectURL(file),
+              format,
+              bitrate: '320 kbps',
+              sampleRate: '44.1 kHz',
+              size: file.size,
+              isLocal: true,
+              source: 'intent',
+              waveformPeaks: peaks,
+              isFavorite: false,
+              audioBlob: file,
+            };
+
+            await saveTracksToStorage([trackObj]);
+            setTracks((prev) => [trackObj, ...prev.filter((t) => t.id !== trackObj.id)]);
+            handleSelectTrack(trackObj);
+            setActiveDestination('home');
+          } catch (e) {
+            console.warn('Failed to parse intent file:', e);
+          }
+        });
+        unlisten = listener;
+      } catch (err) {
+        // Ignored when running outside native Capacitor container
+      }
+    };
+
+    setupIntentListener();
+
+    return () => {
+      if (unlisten && typeof unlisten.remove === 'function') {
+        unlisten.remove();
+      }
+    };
+  }, []);
+
   // Set up MediaSession action handlers for native Android notification bar & background audio
   useEffect(() => {
     mediaSessionController.setHandlers({
@@ -427,11 +488,14 @@ export default function App() {
 
   return (
     <div className="h-[100dvh] max-h-[100dvh] w-full bg-[#07030e] text-neutral-100 flex flex-col justify-between overflow-hidden selection:bg-purple-500/30 font-sans pt-[env(safe-area-inset-top,0px)]">
-      {/* Background Cosmic Nebula Light Glow */}
-      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[450px] h-[450px] bg-purple-700/15 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[550px] h-[550px] bg-indigo-700/15 rounded-full blur-[140px]" />
-      </div>
+      {/* Fast Hardware-Accelerated Ambient Glow (Zero Multi-Pass GPU Blur) */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-10"
+        style={{
+          background:
+            'radial-gradient(circle at 20% 15%, rgba(147, 51, 234, 0.12) 0%, transparent 60%), radial-gradient(circle at 80% 85%, rgba(79, 70, 229, 0.12) 0%, transparent 60%)',
+        }}
+      />
 
       {/* Hidden File Input for universal local media browsing */}
       <input
