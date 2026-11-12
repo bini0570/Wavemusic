@@ -1,8 +1,20 @@
-# 🎵 DV Music — 100% Offline Web Audio Player
+# 🎵 DV Music — 100% Offline Music Player & Android APK
 
-A high-fidelity, zero-dependency offline web music player built with **React 19, JavaScript (JSX), Tailwind CSS v4, and the Web Audio API**.
+A high-fidelity, zero-dependency offline music player built with **React 19, JavaScript (JSX), Tailwind CSS v4, and the Web Audio API**.
 
-DV Music requires **no internet connection**, no external APIs, and no backend servers. All audio processing (10-Band EQ, 8D Binaural Spatializer, DSP Effects, and Real-Time Spectrum Visualizers) is computed client-side directly in the browser.
+DV Music requires **no internet connection**, no external APIs, and no backend servers. All audio processing (10-Band EQ, 8D Binaural Spatializer, DSP Effects, and Real-Time Spectrum Visualizers) is computed client-side directly in the browser or on your Android device.
+
+---
+
+## 📱 Download & Install Android APK
+
+Every push to this repository automatically builds a ready-to-install Android APK using **GitHub Actions**.
+
+### How to get the APK:
+1. Go to the [**Releases**](https://github.com/bini0570/Wavemusic/releases) page of this repository.
+2. Download **`DVMusic-Offline.apk`**.
+3. On your Android phone, tap the file and tap **Install**.
+4. (Optional) You can also find the latest APK under the [**Actions Tab**](https://github.com/bini0570/Wavemusic/actions) > click the latest workflow run > download **`DVMusic-Android-APK`** under Artifacts.
 
 ---
 
@@ -26,13 +38,13 @@ DV Music requires **no internet connection**, no external APIs, and no backend s
 
 ---
 
-## 🚀 Quick Start & Installation
+## 🚀 Running Locally
 
 ### Option 1: Run with NPM / Node.js
 ```bash
 # 1. Clone repository from GitHub
-git clone https://github.com/bini0570/DVmusic.git
-cd DVmusic
+git clone https://github.com/bini0570/Wavemusic.git
+cd Wavemusic
 
 # 2. Install dependencies
 npm install
@@ -46,65 +58,25 @@ Open **`http://localhost:3000`** in your browser.
 
 ### Option 2: Run with Bun
 ```bash
-git clone https://github.com/bini0570/DVmusic.git
-cd DVmusic
+git clone https://github.com/bini0570/Wavemusic.git
+cd Wavemusic
 bun install
 bun run dev
 ```
 
 ---
 
-## 📲 How to Install as an App (PWA)
-
-You can install DV Music as an independent app on your computer or phone:
-
-### On Desktop (Chrome / Edge / Brave):
-1. Open the app in your browser (`http://localhost:3000` or deployed URL).
-2. Look at the top right of the browser address bar.
-3. Click the **Install DV Music** icon (or press `Menu > More Tools > Create Shortcut / Install App`).
-4. DV Music will now appear in your Start Menu / Applications as a standalone app!
-
-### On Mobile (Android / iOS):
-- **Android (Chrome)**: Tap the 3 dots in the top right > tap **Add to Home screen** / **Install app**.
-- **iOS (Safari)**: Tap the **Share** button at the bottom > tap **Add to Home Screen**.
-
----
-
-## 🛠️ Project Structure
-
-```
-DVmusic/
-├── public/
-│   ├── icon.svg               # App icon & PWA logo
-│   ├── manifest.json          # PWA Standalone Web App Manifest
-│   ├── sw.js                  # Offline Service Worker cache
-│   └── assets/                # Default cover art and visuals
-├── src/
-│   ├── audio/
-│   │   ├── audioEngine.js     # Web Audio API 32-bit DSP pipeline (EQ, 8D, filters)
-│   │   └── syntheticTracks.js # Offline synthesizer & audio metadata decoder
-│   ├── components/
-│   │   ├── DVNowPlaying.jsx   # Main player screen, album art, transport, volume
-│   │   ├── DVLibrary.jsx      # Offline library, playlists, folders & file picker
-│   │   ├── DVEqualizerTab.jsx # 8D Radar & 10-Band EQ interface
-│   │   ├── DVEffectsCard.jsx  # 12 DSP effect tiles & sliders
-│   │   ├── DVSettingsTab.jsx  # Sleep timer, 8D speed, hardware DAC info
-│   │   ├── DVMiniPlayer.jsx   # Persistent bottom mini-player
-│   │   ├── DVSpectrumVisualizer.jsx # 4-mode canvas visualizer
-│   │   └── DVBottomNav.jsx    # 4-destination navigation bar
-│   ├── App.jsx                # Main application state & router
-│   ├── index.css              # Custom styling & dark theme
-│   └── main.jsx               # React 19 entrypoint
-├── index.html                 # PWA metadata & entrypoint
-├── package.json               # Pure JavaScript dependencies
-└── vite.config.js             # Vite 8 config
-```
+## 🤖 GitHub Actions Workflow
+The automated Android APK build is defined in [`.github/workflows/build-apk.yml`](.github/workflows/build-apk.yml):
+- Triggers on every push to `main` and on manual trigger (`workflow_dispatch`).
+- Uses Capacitor 6 + Java 17 + Android SDK.
+- Automatically compiles `DVMusic-Offline.apk` and creates a GitHub Release.
 
 ---
 
 ## 🛡️ Privacy & Offline Guarantee
 - **Zero Tracking**: No external analytics, trackers, or cookies.
-- **Zero Cloud Uploads**: Your local audio files never leave your device. All playback and DSP rendering happen inside your device's browser memory.
+- **Zero Cloud Uploads**: Your local audio files never leave your device. All playback and DSP rendering happen inside your device's local memory.
 
 ---
 

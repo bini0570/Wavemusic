@@ -1,0 +1,8 @@
+{
+  "appId": "com.bini0570.wavemusic",
+  "appName": "DV Music",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
